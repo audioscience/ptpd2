@@ -33,6 +33,8 @@ updateDelay(one_way_delay_filter * owd_filt, RunTimeOpts * rtOpts, PtpClock * pt
 
 	TimeInternal slave_to_master_delay;
 
+	DBGV("updateDelay\n");
+
 	/* calc 'slave_to_master_delay' */
 	subTime(&slave_to_master_delay, &ptpClock->delay_req_receive_time, 
 		&ptpClock->delay_req_send_time);
@@ -113,7 +115,7 @@ updatePeerDelay(one_way_delay_filter * owd_filt, RunTimeOpts * rtOpts, PtpClock 
 {
 	Integer16 s;
 
-	DBGV("updateDelay\n");
+	DBGV("updatePeerDelay\n");
 
 	if (twoStep) {
 		/* calc 'slave_to_master_delay' */
@@ -195,14 +197,14 @@ updateOffset(TimeInternal * send_time, TimeInternal * recv_time,
 
 	if (rtOpts->maxDelay) { /* If maxDelay is 0 then it's OFF */
 		if (master_to_slave_delay.seconds && rtOpts->maxDelay) {
-			INFO("updateDelay aborted, delay greater than 1"
+			INFO("updateOffset aborted, delay greater than 1"
 			     " second.");
 			msgDump(ptpClock);
 			return;
 		}
 
 		if (master_to_slave_delay.nanoseconds > rtOpts->maxDelay) {
-			INFO("updateDelay aborted, delay %d greater than "
+			INFO("updateOffset aborted, delay %d greater than "
 			     "administratively set maximum %d\n",
 			     master_to_slave_delay.nanoseconds, 
 			     rtOpts->maxDelay);
