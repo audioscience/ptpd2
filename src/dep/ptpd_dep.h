@@ -12,10 +12,11 @@
  /** \name System messages*/
  /**\{*/
 
-#define ERROR(x, ...)  message(LOG_ERR, x, ##__VA_ARGS__)
-#define PERROR(x, ...) message(LOG_ERR, x ": %m\n", ##__VA_ARGS__)
-#define NOTIFY(x, ...) message(LOG_NOTICE, x, ##__VA_ARGS__)
-#define INFO(x, ...)   message(LOG_INFO, x, ##__VA_ARGS__)
+#define ERROR(x, ...)   message(LOG_ERR, x, ##__VA_ARGS__)
+#define PERROR(x, ...)  message(LOG_ERR, x ": %m\n", ##__VA_ARGS__)
+#define WARNING(x, ...) message(LOG_WARNING, x, ##__VA_ARGS__)
+#define NOTIFY(x, ...)  message(LOG_NOTICE, x, ##__VA_ARGS__)
+#define INFO(x, ...)    message(LOG_INFO, x, ##__VA_ARGS__)
 
 /** \}*/
 
@@ -23,7 +24,9 @@
  /**\{*/
 
 #ifdef PTPD_DBGV
+#ifndef PTPD_DBG
 #define PTPD_DBG
+#endif
 #define DBGV(x, ...) message(LOG_DEBUG, x, ##__VA_ARGS__)
 #else
 #define DBGV(x, ...)
