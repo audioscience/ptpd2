@@ -8,32 +8,32 @@
  */
 typedef enum {FALSE=0, TRUE} Boolean;
 typedef char Octet;
-typedef signed char Integer8;
-typedef signed short Integer16;
-typedef signed int Integer32;
-typedef unsigned char UInteger8;
-typedef unsigned short UInteger16;
-typedef unsigned int UInteger32;
-typedef unsigned short Enumeration16;
-typedef unsigned char Enumeration8;
-typedef unsigned char Enumeration4;
-typedef unsigned char UInteger4;
-typedef unsigned char Nibble;
+typedef int8_t Integer8;
+typedef int16_t Integer16;
+typedef int32_t Integer32;
+typedef uint8_t UInteger8;
+typedef uint16_t UInteger16;
+typedef uint32_t UInteger32;
+typedef uint16_t Enumeration16;
+typedef uint8_t Enumeration8;
+typedef uint8_t Enumeration4;
+typedef uint8_t UInteger4;
+typedef uint8_t Nibble;
 
 /**
 * \brief Implementation specific of UInteger48 type
  */
 typedef struct {
-	unsigned int lsb;
-	unsigned short msb;
+	UInteger32 lsb;
+	UInteger16 msb;
 } UInteger48;
 
 /**
 * \brief Implementation specific of Integer64 type
  */
 typedef struct {
-	unsigned int lsb;
-	int msb;
+	UInteger32 lsb;
+	Integer32 msb;
 } Integer64;
 
 /**
