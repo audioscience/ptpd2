@@ -498,7 +498,7 @@ handleAnnounce(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 	case PTP_FAULTY:
 	case PTP_DISABLED:
 		
-		DBGV("Handleannounce : disreguard \n");
+		DBGV("Handleannounce : disregard \n");
 		return;
 		
 	case PTP_UNCALIBRATED:	
@@ -594,7 +594,7 @@ handleSync(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 	case PTP_FAULTY:
 	case PTP_DISABLED:
 		
-		DBGV("HandleSync : disreguard \n");
+		DBGV("HandleSync : disregard \n");
 		return;
 		
 	case PTP_UNCALIBRATED:	
@@ -700,7 +700,7 @@ handleFollowUp(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 	case PTP_DISABLED:
 	case PTP_LISTENING:
 		
-		DBGV("Handfollowup : disreguard \n");
+		DBGV("Handfollowup : disregard \n");
 		return;
 		
 	case PTP_UNCALIBRATED:	
@@ -773,7 +773,7 @@ handleDelayReq(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 		case PTP_DISABLED:
 		case PTP_UNCALIBRATED:
 		case PTP_LISTENING:
-			DBGV("HandledelayReq : disreguard \n");
+			DBGV("HandledelayReq : disregard \n");
 			return;
 
 		case PTP_SLAVE:
@@ -807,7 +807,7 @@ handleDelayReq(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 	    		break;
 		}
 	} else /* (Peer to Peer mode) */
-		ERROR("Delay messages are disreguard in Peer to Peer mode \n");
+		ERROR("Delay messages are disregarded in Peer to Peer mode \n");
 }
 
 void 
@@ -834,7 +834,7 @@ handleDelayResp(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 		case PTP_DISABLED:
 		case PTP_UNCALIBRATED:
 		case PTP_LISTENING:
-			DBGV("HandledelayResp : disreguard \n");
+			DBGV("HandledelayResp : disregard \n");
 			return;
 
 		case PTP_SLAVE:
@@ -903,7 +903,7 @@ handlePDelayReq(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 		case PTP_DISABLED:
 		case PTP_UNCALIBRATED:
 		case PTP_LISTENING:
-			DBGV("HandlePdelayReq : disreguard \n");
+			DBGV("HandlePdelayReq : disregard \n");
 			return;
 		
 		case PTP_SLAVE:
@@ -937,8 +937,7 @@ handlePDelayReq(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 			break;
 		}
 	} else /* (End to End mode..) */
-		ERROR("Peer Delay messages are disreguard in End to End "
-		      "mode \n");
+		ERROR("Peer Delay messages are disregarded in End to End mode \n");
 }
 
 void 
@@ -966,7 +965,7 @@ handlePDelayResp(MsgHeader *header, Octet *msgIbuf, TimeInternal *time,
 		case PTP_DISABLED:
 		case PTP_UNCALIBRATED:
 		case PTP_LISTENING:
-			DBGV("HandlePdelayResp : disreguard \n");
+			DBGV("HandlePdelayResp : disregard \n");
 			return;
 		
 		case PTP_SLAVE:
@@ -1087,8 +1086,7 @@ handlePDelayResp(MsgHeader *header, Octet *msgIbuf, TimeInternal *time,
 			break;
 		}
 	} else { /* (End to End mode..) */
-		ERROR("Peer Delay messages are disreguard in End to End "
-		      "mode \n");
+		ERROR("Peer Delay messages are disregarded in End to End mode \n");
 	}
 }
 
@@ -1114,7 +1112,7 @@ handlePDelayRespFollowUp(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 		case PTP_FAULTY:
 		case PTP_DISABLED:
 		case PTP_UNCALIBRATED:
-			DBGV("HandlePdelayResp : disreguard \n");
+			DBGV("HandlePdelayResp : disregard \n");
 			return;
 		
 		case PTP_SLAVE:
@@ -1167,8 +1165,7 @@ handlePDelayRespFollowUp(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 			DBGV("Disregard PdelayRespFollowUp message  \n");
 		}
 	} else { /* (End to End mode..) */
-		ERROR("Peer Delay messages are disreguard in End to End "
-		      "mode \n");
+		ERROR("Peer Delay messages are disregarded in End to End mode \n");
 	}
 }
 
