@@ -18,6 +18,26 @@
 #ifndef PTPD_H_
 #define PTPD_H_
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <math.h>
+#include <errno.h>
+#include <signal.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <limits.h>
+#include <sys/time.h>
+#include <sys/timex.h>
+#include <sys/socket.h>
+#include <sys/select.h>
+#include <sys/ioctl.h>
+#include <arpa/inet.h>
+#include <stdarg.h>
+#include <syslog.h>
+#include <limits.h>
 
 #include "constants.h"
 #include "limits.h"
