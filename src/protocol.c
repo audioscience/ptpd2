@@ -216,6 +216,85 @@ toState(UInteger8 state, RunTimeOpts *rtOpts, PtpClock *ptpClock)
 		displayStats(rtOpts, ptpClock);
 }
 
+// added for debugging
+char *messageTypeToStr(int messageType) {
+	switch (messageType)
+	{
+	case SYNC:
+		return "PTP_SYNC_MESSAGE";
+		break;
+	case DELAY_REQ:
+		return "PTP_DELAY_REQ_MESSAGE";
+		break;
+	case PDELAY_REQ:
+		return "PTP_PDELAY_REQ_MESSAGE";
+		break;
+	case PDELAY_RESP:
+		return "PTP_PDELAY_RESP_MESSAGE";
+		break;
+	case FOLLOW_UP:
+		return "PTP_FOLLOWUP_MESSAGE";
+		break;
+	case DELAY_RESP:
+		return "PTP_DELAY_RESP_MESSAGE";
+		break;
+	case PDELAY_RESP_FOLLOW_UP:
+		return "PTP_PDELAY_RESP_FOLLOWUP";
+		break;
+	case ANNOUNCE:
+		return "PTP_ANNOUNCE_MESSAGE";
+		break;
+	case SIGNALING:
+		return "PTP_SIGNALING_MESSAGE";
+		break;
+	case MANAGEMENT:
+		return "PTP_MANAGEMENT_MESSAGE";
+		break;
+	default:
+		return "UNKNOWN";
+		break;
+	}
+}
+
+// added for debugging
+char *messageTypeToShortStr(int messageType) {
+	switch (messageType)
+	{
+	case SYNC:
+		return "SYNC";
+		break;
+	case DELAY_REQ:
+		return "DLYREQ";
+		break;
+	case PDELAY_REQ:
+		return "PDLYREQ";
+		break;
+	case PDELAY_RESP:
+		return "PDLYRSP";
+		break;
+	case FOLLOW_UP:
+		return "FOLLOWUP";
+		break;
+	case DELAY_RESP:
+		return "DLYRESP";
+		break;
+	case PDELAY_RESP_FOLLOW_UP:
+		return "PDLYRSPF";
+		break;
+	case ANNOUNCE:
+		return "ANNOUNCE";
+		break;
+	case SIGNALING:
+		return "SIGNAL";
+		break;
+	case MANAGEMENT:
+		return "MGMTMSG";
+		break;
+	default:
+		return "UNKNOWN";
+		break;
+	}
+}
 
 Boolean 
 doInit(RunTimeOpts *rtOpts, PtpClock *ptpClock)
