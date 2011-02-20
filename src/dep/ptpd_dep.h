@@ -182,7 +182,8 @@ Boolean adjFreq(Integer32);
 void initTimer(void);
 void timerUpdate(IntervalTimer*);
 void timerStop(UInteger16,IntervalTimer*);
-void timerStart(UInteger16,UInteger16,IntervalTimer*);
+//void timerStart(UInteger16,UInteger16,IntervalTimer*);
+void timerStart(UInteger16,float,IntervalTimer*);
 Boolean timerExpired(UInteger16,IntervalTimer*);
 /** \}*/
 
