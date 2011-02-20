@@ -428,6 +428,10 @@ typedef struct {
 	int ttl;
 	char recordFile[PATH_MAX];
 	FILE *recordFP;
+
+	Boolean probe;      // Management probes not implemented yet
+        Boolean quickPoll;  // Management probes not implemented yet
+
 } RunTimeOpts;
 
 #endif /*DATATYPES_H_*/

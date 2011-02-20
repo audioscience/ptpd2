@@ -54,6 +54,9 @@ main(int argc, char **argv)
 	rtOpts.useSysLog = FALSE;
 	rtOpts.ttl = 1;
 
+	rtOpts.probe = FALSE;
+	rtOpts.quickPoll = 0;
+
 	/* Initialize run time options with command line arguments */
 	if (!(ptpClock = ptpdStartup(argc, argv, &ret, &rtOpts)))
 		return ret;
