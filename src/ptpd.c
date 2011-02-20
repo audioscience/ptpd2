@@ -58,11 +58,19 @@ main(int argc, char **argv)
 	if (!(ptpClock = ptpdStartup(argc, argv, &ret, &rtOpts)))
 		return ret;
 
-	/* do the protocol engine */
-	protocol(&rtOpts, ptpClock);
-	/* forever loop.. */
+	
+        if (rtOpts.probe) {
+                // not yet implemented
+        }
+        else {
+		NOTIFY("ptpd %s started\n", VERSION_STRING);
 
-	    ptpdShutdown();
+		/* do the protocol engine */
+		protocol(&rtOpts, ptpClock);
+		/* forever loop.. */
+	}
+
+        ptpdShutdown();
 
 	NOTIFY("self shutdown, probably due to an error\n");
 
