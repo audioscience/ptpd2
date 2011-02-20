@@ -64,7 +64,7 @@ logToFile()
 	if(rtOpts.logFd != -1)
 		close(rtOpts.logFd);
 	
-	if((rtOpts.logFd = creat(rtOpts.file, 0444)) != -1) {
+	if((rtOpts.logFd = creat(rtOpts.logFile, 0444)) != -1) {
 		dup2(rtOpts.logFd, STDOUT_FILENO);
 		dup2(rtOpts.logFd, STDERR_FILENO);
 	}
@@ -172,7 +172,7 @@ ptpdStartup(int argc, char **argv, Integer16 * ret, RunTimeOpts * rtOpts)
 			rtOpts->ttl = atoi(optarg);
 			break;
 		case 'f':
-			strncpy(rtOpts->file, optarg, PATH_MAX);
+			strncpy(rtOpts->logFile, optarg, PATH_MAX);
 			if(logToFile())
 				noclose = 1;
 			else

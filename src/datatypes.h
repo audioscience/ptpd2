@@ -424,7 +424,7 @@ typedef struct {
 	Boolean ethernet_mode;
 	Boolean E2E_mode;
 	Boolean	offset_first_updated;
-	char file[PATH_MAX];
+	char logFile[PATH_MAX];
 	int logFd;
 	Boolean useSysLog;
 	int ttl;
