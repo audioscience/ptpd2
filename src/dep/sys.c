@@ -128,7 +128,7 @@ displayStats(RunTimeOpts * rtOpts, PtpClock * ptpClock)
 
 	if (start && rtOpts->csvStats) {
 		start = 0;
-		printf("timestamp, state, one way delay, offset from master, "
+		printf("timestamp, state, clock ID, one way delay, offset from master, "
 		       "slave to master, master to slave, drift, variance");
 		fflush(stdout);
 	}
