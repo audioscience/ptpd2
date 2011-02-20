@@ -511,43 +511,53 @@ handle(RunTimeOpts *rtOpts, PtpClock *ptpClock)
 	switch(ptpClock->msgTmpHeader.messageType)
 	{
 	case ANNOUNCE:
+		DBGV("received ANNOUNCE message, entering handleAnnounce()\n");
 		handleAnnounce(&ptpClock->msgTmpHeader, ptpClock->msgIbuf, 
 			       length, isFromSelf, rtOpts, ptpClock);
 		break;
 	case SYNC:
+		DBGV("received SYNC message, entering handleSync()\n");
 		handleSync(&ptpClock->msgTmpHeader, ptpClock->msgIbuf, 
 			   length, &time, isFromSelf, rtOpts, ptpClock);
 		break;
 	case FOLLOW_UP:
+		DBGV("received FOLLOW_UP message, entering handleFollowUp()\n");
 		handleFollowUp(&ptpClock->msgTmpHeader, ptpClock->msgIbuf, 
 			       length, isFromSelf, rtOpts, ptpClock);
 		break;
 	case DELAY_REQ:
+		DBGV("received DELAY_REQ message, entering handleDelayReq()\n");
 		handleDelayReq(&ptpClock->msgTmpHeader, ptpClock->msgIbuf, 
 			       length, &time, isFromSelf, rtOpts, ptpClock);
 		break;
 	case PDELAY_REQ:
+		DBGV("received PDELAY_REQ message, entering handlePDelayReq()\n");
 		handlePDelayReq(&ptpClock->msgTmpHeader, ptpClock->msgIbuf, 
 				length, &time, isFromSelf, rtOpts, ptpClock);
 		break;  
 	case DELAY_RESP:
+		DBGV("received DELAY_RESP message, entering handleDelayResp()\n");
 		handleDelayResp(&ptpClock->msgTmpHeader, ptpClock->msgIbuf, 
 				length, isFromSelf, rtOpts, ptpClock);
 		break;
 	case PDELAY_RESP:
+		DBGV("received PDELAY_RESP message, entering handlePDelayResp()\n");
 		handlePDelayResp(&ptpClock->msgTmpHeader, ptpClock->msgIbuf,
 				 &time, length, isFromSelf, rtOpts, ptpClock);
 		break;
 	case PDELAY_RESP_FOLLOW_UP:
+		DBGV("received PDELAY_RESP_FOLLOW_UP message, entering handlePDelayRespFollowUp()\n");
 		handlePDelayRespFollowUp(&ptpClock->msgTmpHeader, 
 					 ptpClock->msgIbuf, length, 
 					 isFromSelf, rtOpts, ptpClock);
 		break;
 	case MANAGEMENT:
+		DBGV("received MANAGEMENT message, entering handleManagement()\n");
 		handleManagement(&ptpClock->msgTmpHeader, ptpClock->msgIbuf, 
 				 length, isFromSelf, rtOpts, ptpClock);
 		break;
 	case SIGNALING:
+		DBGV("received SIGNALING message, entering handleSignaling()\n");
 		handleSignaling(&ptpClock->msgTmpHeader, ptpClock->msgIbuf, 
 				length, isFromSelf, rtOpts, ptpClock);
 		break;
