@@ -264,39 +264,38 @@ updateClock(RunTimeOpts * rtOpts, PtpClock * ptpClock)
 
 	DBGV("updateClock\n");
 
-	if (rtOpts->maxReset) { /* If maxReset is 0 then it's OFF */
-		if (ptpClock->offsetFromMaster.seconds && rtOpts->maxReset) {
-			INFO("updateClock aborted, offset greater than 1"
-			     " second.");
-			msgDump(ptpClock);
-			goto display;
-		}
-
-		if (ptpClock->offsetFromMaster.nanoseconds > rtOpts->maxReset) {
-			INFO("updateClock aborted, offset %d greater than "
-			     "administratively set maximum %d\n",
-			     ptpClock->offsetFromMaster.nanoseconds, 
-			     rtOpts->maxReset);
+        /* If maxAdjust is 0 then there is no limit */
+	if (!rtOpts->noAdjust && rtOpts->maxAdjust) {
+		if (ptpClock->offsetFromMaster.seconds || abs(ptpClock->offsetFromMaster.nanoseconds) > rtOpts->maxAdjust) {
+			INFO("updateClock aborted, offset exceeds administratively set maximum %dns\n",
+				rtOpts->maxAdjust);
 			msgDump(ptpClock);
 			goto display;
 		}
 	}
 
-	if (ptpClock->offsetFromMaster.seconds) {
-		/* if secs, reset clock or set freq adjustment to max */
+	/* if got here, maxAdjust is either unlimited or we are not past the limit */
+	/* if over limit, reset clock or set freq adjustment to max */
+	if (rtOpts->maxStep && (ptpClock->offsetFromMaster.seconds || abs(ptpClock->offsetFromMaster.nanoseconds) > rtOpts->maxStep)) {
+		/* the offset is past the step limit, so step the clock */
 		if (!rtOpts->noAdjust) {
-			if (!rtOpts->noResetClock) {
-				getTime(&timeTmp);
-				subTime(&timeTmp, &timeTmp, 
-					&ptpClock->offsetFromMaster);
-				setTime(&timeTmp);
-				initClock(rtOpts, ptpClock);
-			} else {
-				adj = ptpClock->offsetFromMaster.nanoseconds
-					> 0 ? ADJ_FREQ_MAX : -ADJ_FREQ_MAX;
-				adjFreq(-adj);
-			}
+			getTime(&timeTmp);
+			subTime(&timeTmp, &timeTmp, &ptpClock->offsetFromMaster);
+			setTime(&timeTmp);
+			initClock(rtOpts, ptpClock);
+
+			double offset = ((double)ptpClock->offsetFromMaster.nanoseconds / 1000000000) + ptpClock->offsetFromMaster.seconds;
+			NOTIFY("clock stepped, off by %.6lf seconds", offset);
+
 		}
+	}
+	else if (ptpClock->offsetFromMaster.seconds) {
+		/* options don't allow stepping the clock, so set to max frequency offset */
+		if (!rtOpts->noAdjust) {
+			adj = ptpClock->offsetFromMaster.nanoseconds > 0 ? ADJ_FREQ_MAX : -ADJ_FREQ_MAX;
+			adjFreq(-adj);
+		}
+
 	} else {
 		/* the PI controller */
 

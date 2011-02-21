@@ -18,7 +18,9 @@
 /* implementation specific constants */
 #define DEFAULT_INBOUND_LATENCY      	0       /* in nsec */
 #define DEFAULT_OUTBOUND_LATENCY     	0       /* in nsec */
-#define DEFAULT_NO_RESET_CLOCK       	FALSE
+#define DEFAULT_CLOCK_ADJUST_LIMIT	0           /* in nsec, 0 = no limit */
+#define DEFAULT_CLOCK_STEP_LIMIT	1000000000  /* in nsec, 0 = never step/slew only */
+#define DEFAULT_DELAY_LIMIT		0           /* in nsec, 0 = no limit */
 #define DEFAULT_DOMAIN_NUMBER		0
 #define DEFAULT_DELAY_MECHANISM		P2P 
 #define DEFAULT_AP                   	10

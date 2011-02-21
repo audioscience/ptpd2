@@ -107,8 +107,7 @@ ptpdStartup(int argc, char **argv, Integer16 * ret, RunTimeOpts * rtOpts)
 	int c, nondaemon = 0, noclose = 0;
 
 	/* parse command line arguments */
-	while ((c = getopt(argc, argv, "?cf:dDPR:xM:O:ta:w:b:u:l:o:n:y:m:"
-			   "gv:r:Ss:p:q:i:ehT:")) != -1) {
+	while ((c = getopt(argc, argv, "?cf:dDPR:tx:X:M:a:w:b:u:l:o:n:y:m:gv:r:Ss:p:q:i:ehT:")) != -1) {
 		switch (c) {
 		case '?':
 			printf(
@@ -126,10 +125,10 @@ ptpdStartup(int argc, char **argv, Integer16 * ret, RunTimeOpts * rtOpts)
 				"-P                display each packet-n"
 				"-R                record data about sync packets in a file\n"				
 				"\n"
-				"-x                do not reset the clock if off by more than one second\n"
-				"-O                do not reset the clock if offset is more than NUMBER nanoseconds\n"
-				"-M                do not accept delay values of more than NUMBER nanoseconds\n"
 				"-t                do not adjust the system clock\n"
+				"-x NUMBER         do not adjust clock if off by more than NUMBER nanoseconds (0 = no limit)\n"
+				"-X NUMBER         step the clock if off by more than NUMBER nanoseconds (0 = never step)\n"
+				"-M NUMBER         do not accept PTP delay values of more than NUMBER nanoseconds\n"
 				"-a NUMBER,NUMBER  specify clock servo P and I attenuations\n"
 				"-w NUMBER         specify one way delay filter stiffness\n"
 				"\n"
@@ -195,30 +194,41 @@ ptpdStartup(int argc, char **argv, Integer16 * ret, RunTimeOpts * rtOpts)
 			else
 				PERROR("could not open quality file");
 			break;
-		case 'x':
-			rtOpts->noResetClock = TRUE;
+
+		case 't':
+			rtOpts->noAdjust = TRUE;
 			break;
-		case 'O':
-			rtOpts->maxReset = atoi(optarg);
-			if (rtOpts->maxReset > 1000000000) {
-				PERROR("Use -x to prevent jumps of more"
-				       " than one second.");
+		case 'x':
+			rtOpts->maxAdjust = atoi(optarg);
+			if(rtOpts->maxAdjust < 1)
+				rtOpts->maxAdjust = 0;
+			if (rtOpts->maxAdjust > 1000000000) {
+				PERROR("Adjust limit may not exceed 1sec, use 0 to allow unlimited.");
+				*ret = 1;
+				return (0);
+			}
+			break;
+		case 'X':
+			rtOpts->maxStep = atoi(optarg);
+			if(rtOpts->maxStep < 1)
+				rtOpts->maxStep = 0;
+			if (rtOpts->maxStep > 1000000000) {
+				PERROR("Step limit may not exceed 1sec, use 0 to never step (slew only).");
 				*ret = 1;
 				return (0);
 			}
 			break;
 		case 'M':
 			rtOpts->maxDelay = atoi(optarg);
+			if(rtOpts->maxDelay < 1)
+				rtOpts->maxDelay = 0;
 			if (rtOpts->maxDelay > 1000000000) {
-				PERROR("Use -x to prevent jumps of more"
-				       " than one second.");
+				PERROR("Max PTP delay limit may not exceed 1sec, use 0 to allow unlimited");
 				*ret = 1;
 				return (0);
 			}
 			break;
-		case 't':
-			rtOpts->noAdjust = TRUE;
-			break;
+
 		case 'a':
 			rtOpts->ap = strtol(optarg, &optarg, 0);
 			if (optarg[0])

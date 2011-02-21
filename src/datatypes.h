@@ -409,10 +409,10 @@ typedef struct {
 	Boolean	slaveOnly;
 	Integer16 currentUtcOffset;
 	Octet ifaceName[IFACE_NAME_LENGTH];
-	Boolean	noResetClock;
-	Integer32 maxReset; /* Maximum number of nanoseconds to reset */
-	Integer32 maxDelay; /* Maximum number of nanoseconds of delay */
 	Boolean	noAdjust;
+	Integer32 maxAdjust; /* Maximum number of nanoseconds off, past which we no longer adjust the clock */
+	Integer32 maxStep;   /* Maximum number of nanoseconds to slew-only, past which we will step the clock */
+	Integer32 maxDelay;  /* Maximum number of nanoseconds of delay, past which we discard the measurement */
 	Boolean	displayStats;
 	Boolean	csvStats;
 	Boolean displayPackets;

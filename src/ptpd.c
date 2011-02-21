@@ -34,8 +34,10 @@ main(int argc, char **argv)
 	// rtOpts.slaveOnly = FALSE;
 	rtOpts.currentUtcOffset = DEFAULT_UTC_OFFSET;
 	// rtOpts.ifaceName
-	rtOpts.noResetClock = DEFAULT_NO_RESET_CLOCK;
-	rtOpts.noAdjust = NO_ADJUST;  // false
+	rtOpts.noAdjust  = NO_ADJUST;  // false
+	rtOpts.maxAdjust = DEFAULT_CLOCK_ADJUST_LIMIT;
+	rtOpts.maxStep   = DEFAULT_CLOCK_STEP_LIMIT;
+	rtOpts.maxDelay  = DEFAULT_DELAY_LIMIT;
 	// rtOpts.displayStats = FALSE;
 	// rtOpts.csvStats = FALSE;
 	rtOpts.displayPackets = FALSE;

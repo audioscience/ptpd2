@@ -272,8 +272,10 @@ displayRunTimeOpts(RunTimeOpts * rtOpts)
 	DBGV("slaveOnly : %d \n", rtOpts->slaveOnly);
 	DBGV("currentUtcOffset : %d \n", rtOpts->currentUtcOffset);
 	unicast_display(rtOpts->unicastAddress);
-	DBGV("noResetClock : %d \n", rtOpts->noResetClock);
 	DBGV("noAdjust : %d \n", rtOpts->noAdjust);
+	DBGV("maxAdjust : %d \n", rtOpts->maxAdjust);
+	DBGV("maxStep : %d \n", rtOpts->maxStep);
+	DBGV("maxDelay : %d \n", rtOpts->maxDelay);
 	DBGV("displayStats : %d \n", rtOpts->displayStats);
 	DBGV("csvStats : %d \n", rtOpts->csvStats);
 	iFaceName_display(rtOpts->ifaceName);
