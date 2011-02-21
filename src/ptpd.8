@@ -11,9 +11,10 @@ ptpd2 \- Precision Time Protocol daemon (1588-2008)
 [-R FILE]
 [-d]
 [-D]
-[-x]
-[-M NUMBER]
 [-t]
+[-x NUMBER]
+[-X NUMBER]
+[-M NUMBER]
 [-T ttl]
 [-a NUMBER,NUMBER]
 [-w NUMBER]
@@ -70,14 +71,17 @@ display stats
 .B \-D
 display stats in .csv format
 .TP
-.B \-x
-do not reset the clock if off by more than one second
-.TP
-.B \-M NUMBER
-do not reset the clock if off by more than NUMBER nanoseconds
-.TP
 .B \-t
 do not adjust the system clock
+.TP
+.B \-x NUMBER
+do not adjust the clock if off by more than NUMBER nanoseconds (0 = no limit)
+.TP
+.B \-X NUMBER
+step the clock if off by more than NUMBER nanoseconds (0 = never step)
+.TP
+.B \-M NUMBER
+disregard (do not accept) PTP delay measurement values greater than NUMBER nanoseconds
 .TP
 .B \-T
 set multicast TTL for packets.  Defaults to 1.
