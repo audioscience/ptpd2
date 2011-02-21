@@ -23,6 +23,7 @@ main(int argc, char **argv)
 	Integer16 ret;
 
 	/* initialize run-time options to default values */
+	memset(&rtOpts, 0, sizeof(rtOpts));
 	rtOpts.announceInterval = DEFAULT_ANNOUNCE_INTERVAL;
 	rtOpts.syncInterval = DEFAULT_SYNC_INTERVAL;
 	rtOpts.clockQuality.clockAccuracy = DEFAULT_CLOCK_ACCURACY;
