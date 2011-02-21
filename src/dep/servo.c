@@ -18,13 +18,18 @@ initClock(RunTimeOpts * rtOpts, PtpClock * ptpClock)
 		ptpClock->master_to_slave_delay.nanoseconds = 0;
 	ptpClock->slave_to_master_delay.seconds = 
 		ptpClock->slave_to_master_delay.nanoseconds = 0;
-	ptpClock->observed_drift = 0;	/* clears clock servo accumulator (the
-					 * I term) */
+	// Removed reset of observed drift so will eventually calibrate even if way off initially
+	//ptpClock->observed_drift = 0;	/* clears clock servo accumulator (the I term) */
 	ptpClock->owd_filt.s_exp = 0;	/* clears one-way delay filter */
 
 	/* level clock */
-	if (!rtOpts->noAdjust)
-		adjFreq(0);
+	if (!rtOpts->noAdjust) {
+		/* Changed to use the previously observed_drift, rather than forcing to 
+		 * restart from zero (uncalibrated).
+		 * This dramatically decreases the time it takes the drift to pull in and
+		 * for the clock to stabilize when the master changes */
+		adjFreq(-ptpClock->observed_drift);
+	}
 }
 
 void 

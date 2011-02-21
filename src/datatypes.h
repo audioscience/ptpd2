@@ -349,7 +349,7 @@ typedef struct {
 
 	TimeInternal  master_to_slave_delay;
 	TimeInternal  slave_to_master_delay;
-	Integer32 	observed_drift;
+	Integer32     observed_drift;
 
 	TimeInternal  pdelay_req_receive_time;
 	TimeInternal  pdelay_req_send_time;

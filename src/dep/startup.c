@@ -344,6 +344,8 @@ ptpdStartup(int argc, char **argv, Integer16 * ret, RunTimeOpts * rtOpts)
 	}
 #endif
 
+	ptpClock->observed_drift = 0;
+
 	signal(SIGINT, catch_close);
 	signal(SIGTERM, catch_close);
 	signal(SIGHUP, catch_sighup);
