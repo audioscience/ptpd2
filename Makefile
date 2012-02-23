@@ -14,4 +14,4 @@ release:
 	ln -s ../Makefile .; \
 	ln -s ../README .; \
 	ln -s ../RELEASE_NOTES .)
-	tar cvzf $(VERSION).tar.gz --dereference --exclude .o --exclude Doxygen --exclude .svn --exclude .dep --exclude core $(VERSION)
+	tar cvzf $(VERSION).tar.gz -L --exclude .o --exclude Doxygen --exclude .svn --exclude .dep --exclude core $(VERSION)

@@ -128,8 +128,9 @@ displayStats(RunTimeOpts * rtOpts, PtpClock * ptpClock)
 
 	if (start && rtOpts->csvStats) {
 		start = 0;
-		printf("timestamp, state, clock ID, one way delay, offset from master, "
-		       "slave to master, master to slave, drift, variance");
+		printf("timestamp, state, clock ID, one way delay, "
+		       "offset from master, slave to master, "
+		       "master to slave, drift");
 		fflush(stdout);
 	}
 	memset(sbuf, ' ', sizeof(sbuf));
@@ -189,6 +190,7 @@ displayStats(RunTimeOpts * rtOpts, PtpClock * ptpClock)
 		len += sprintf(sbuf + len, ", %s%d",
 		    rtOpts->csvStats ? "" : "drift: ", 
 			       ptpClock->observed_drift);
+
 	}
 	else {
 		if (ptpClock->portState == PTP_MASTER) {
@@ -219,28 +221,41 @@ nanoSleep(TimeInternal * t)
 }
 
 void 
-getTime(TimeInternal * time)
+getTime(clockid_t clkid, TimeInternal * time)
 {
+#if defined(__APPLE__)
+
+	struct timeval tv;
+	gettimeofday(&tv, 0);
+	time->seconds = tv.tv_sec;
+	time->nanoseconds = tv.tv_usec * 1000;
+#else
 	struct timespec tp;
-	if (clock_gettime(CLOCK_REALTIME, &tp) < 0) {
+	if (clock_gettime(clkid, &tp) < 0) {
 		PERROR("clock_gettime() failed, exiting.");
 		exit(0);
 	}
 	time->seconds = tp.tv_sec;
 	time->nanoseconds = tp.tv_nsec;
-
+#endif /* __APPLE__ */
 }
 
 void 
-setTime(TimeInternal * time)
+setTime(clockid_t clkid, TimeInternal *time)
 {
-	struct timeval tv;
- 
-	tv.tv_sec = time->seconds;
-	tv.tv_usec = time->nanoseconds / 1000;
-	settimeofday(&tv, 0);
-	NOTIFY("resetting system clock to %ds %dns\n",
-	       time->seconds, time->nanoseconds);
+	struct timespec ts;
+	int err;
+
+	ts.tv_sec = time->seconds;
+	ts.tv_nsec = time->nanoseconds;
+
+	err = clock_settime(clkid, &ts);
+
+	if (err)
+		ERROR("failed set PTP clock time: %s\n", strerror(errno));
+	else
+		NOTIFY("resetting system clock to %ds %dns\n",
+		       time->seconds, time->nanoseconds);
 }
 
 double 
@@ -249,8 +264,11 @@ getRand(void)
 	return ((rand() * 1.0) / RAND_MAX);
 }
 
+#ifndef USE_LINUX_PHC
+
+#if !defined(__APPLE__)
 Boolean 
-adjFreq(Integer32 adj)
+adjFreq(clockid_t clkid, Integer32 adj)
 {
 	struct timex t;
 
@@ -264,3 +282,42 @@ adjFreq(Integer32 adj)
 
 	return !adjtimex(&t);
 }
+
+#else 
+
+void
+adjTime(Integer32 nanoseconds)
+{
+
+	struct timeval t;
+
+	t.tv_sec = 0;
+	t.tv_usec = nanoseconds / 1000;
+
+	if (adjtime(&t, NULL) < 0)
+		PERROR("failed to ajdtime");
+
+}
+
+#endif /* __APPLE__ */
+
+Boolean adjOffset(clockid_t clkid, TimeInternal *time)
+{
+	TimeInternal timeTmp;
+	getTime(clkid, &timeTmp);
+	subTime(&timeTmp, &timeTmp, time);
+	setTime(clkid, &timeTmp);
+	return TRUE;
+}
+
+Boolean initPtpClock(RunTimeOpts *rtOpts, PtpClock *ptpClock)
+{
+	ptpClock->clkid = CLOCK_REALTIME;
+	return TRUE;
+}
+
+void ptpClockShutdown(PtpClock *ptpClock)
+{
+}
+
+#endif /* !USE_LINUX_PHC */

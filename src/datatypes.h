@@ -2,7 +2,6 @@
 #define DATATYPES_H_
 
 #include <stdio.h> 
-#include <sys/param.h>
 
 /*Struct defined in spec*/
 
@@ -344,8 +343,10 @@ typedef struct {
 	} msgTmp;
 
 
-	Octet msgObuf[PACKET_SIZE];
-	Octet msgIbuf[PACKET_SIZE];
+	Octet *msgObuf;
+	Octet *msgIbuf;
+	Octet inputBuffer[(PACKET_SIZE+16)];   /**< Input buffer array: Packet size plus size for MAC header */
+	Octet outputBuffer[(PACKET_SIZE+16)];   /**< Output buffer array: Packet size plus size for MAC header */
 
 	TimeInternal  master_to_slave_delay;
 	TimeInternal  slave_to_master_delay;
@@ -392,6 +393,10 @@ typedef struct {
 	UInteger8 port_communication_technology;
 	Octet port_uuid_field[PTP_UUID_LENGTH];
 
+	clockid_t clkid;
+
+	int clock_device;
+
 } PtpClock;
 
 /**
@@ -424,16 +429,14 @@ typedef struct {
 	Boolean ethernet_mode;
 	Boolean E2E_mode;
 	Boolean	offset_first_updated;
-	char logFile[PATH_MAX];
+	char file[PATH_MAX];
 	int logFd;
 	Boolean useSysLog;
 	int ttl;
 	char recordFile[PATH_MAX];
 	FILE *recordFP;
-
-	Boolean probe;      // Management probes not implemented yet
-        Boolean quickPoll;  // Management probes not implemented yet
-
+	Octet *ptpClockDevice;
+	Boolean       ptpAnnexF;            /**< AKB: Flag added to support 1588 Annex F PTP Y/N */
 } RunTimeOpts;
 
 #endif /*DATATYPES_H_*/

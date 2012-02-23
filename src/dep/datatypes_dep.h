@@ -20,6 +20,8 @@ typedef unsigned char Enumeration4;
 typedef unsigned char UInteger4;
 typedef unsigned char Nibble;
 
+typedef unsigned int SOCKET;
+
 /**
 * \brief Implementation specific of UInteger48 type
  */
@@ -57,11 +59,32 @@ typedef struct {
   Integer32  s_exp;
 } one_way_delay_filter;
 
+
+#define TX_STACK_SIZE 1
+
+struct tx_item {
+  int len;
+  struct timespec ts;
+  unsigned char buf[PACKET_SIZE];
+};
+
 /**
 * \brief Struct used to store network datas
  */
 typedef struct {
   Integer32 eventSock, generalSock, multicastAddr, peerMulticastAddr,unicastAddr;
+  Integer32 rawSock;
+  UInteger32    rawIfIndex;             /**< Interface Index of raw socket */
+  char          ifName[IFNAMSIZ];       /**< Interface name (e.g. "eth0") */
+  unsigned char portMacAddress[6];      /**< Local Hardware Port MAC address */
+  unsigned char rawDestAddress[6];      /**< Destination MAC Address for raw socket messages */
+  unsigned char rawDestPDelayAddress[6];/**< Destination MAC Address for raw socket PDelay messages */
+  int mtusize;
+  Boolean hwTimestamping;
+  struct {
+    struct tx_item data[TX_STACK_SIZE];
+    int count;
+  } tx_stack;
 } NetPath;
 
 #endif /*DATATYPES_DEP_H_*/

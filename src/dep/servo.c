@@ -23,8 +23,10 @@ initClock(RunTimeOpts * rtOpts, PtpClock * ptpClock)
 	ptpClock->owd_filt.s_exp = 0;	/* clears one-way delay filter */
 
 	/* level clock */
+#if !defined(__APPLE__)
 	if (!rtOpts->noAdjust)
-		adjFreq(0);
+		adjFreq(ptpClock->clkid, 0);
+#endif /* __APPLE__ */
 }
 
 void 
@@ -193,6 +195,14 @@ updateOffset(TimeInternal * send_time, TimeInternal * recv_time,
 	/* calc 'master_to_slave_delay' */
 	subTime(&master_to_slave_delay, recv_time, send_time);
 
+	DBGV("master_to_slave_delay\n");
+	timeInternal_display(&master_to_slave_delay);
+	DBGV("recv_time\n");
+	timeInternal_display(recv_time);
+	DBGV("send_time\n");
+	timeInternal_display(send_time);
+
+
 	if (rtOpts->maxDelay) { /* If maxDelay is 0 then it's OFF */
 		if (master_to_slave_delay.seconds && rtOpts->maxDelay) {
 			INFO("updateDelay aborted, delay greater than 1"
@@ -258,7 +268,6 @@ void
 updateClock(RunTimeOpts * rtOpts, PtpClock * ptpClock)
 {
 	Integer32 adj;
-	TimeInternal timeTmp;
 
 	DBGV("updateClock\n");
 
@@ -280,19 +289,22 @@ updateClock(RunTimeOpts * rtOpts, PtpClock * ptpClock)
 		}
 	}
 
+	DBG(">>>>>>>>>>>>>>>>>>>>>>>>>Raw offset from master:  %10ds %11dns\n",
+	    ptpClock->offsetFromMaster.seconds,
+	    ptpClock->offsetFromMaster.nanoseconds);
+
 	if (ptpClock->offsetFromMaster.seconds) {
 		/* if secs, reset clock or set freq adjustment to max */
 		if (!rtOpts->noAdjust) {
 			if (!rtOpts->noResetClock) {
-				getTime(&timeTmp);
-				subTime(&timeTmp, &timeTmp, 
-					&ptpClock->offsetFromMaster);
-				setTime(&timeTmp);
+				adjOffset(ptpClock->clkid, &ptpClock->offsetFromMaster);
 				initClock(rtOpts, ptpClock);
 			} else {
+#if !defined(__APPLE__)
 				adj = ptpClock->offsetFromMaster.nanoseconds
 					> 0 ? ADJ_FREQ_MAX : -ADJ_FREQ_MAX;
-				adjFreq(-adj);
+				adjFreq(ptpClock->clkid, -adj);
+#endif /* __APPLE__ */
 			}
 		}
 	} else {
@@ -319,8 +331,17 @@ updateClock(RunTimeOpts * rtOpts, PtpClock * ptpClock)
 
 		/* apply controller output as a clock tick rate adjustment */
 		if (!rtOpts->noAdjust)
-			adjFreq(-adj);
+#if defined(__APPLE__)
+			adjTime(ptpClock->offsetFromMaster.nanoseconds);
+#else
+			adjFreq(ptpClock->clkid, -adj);
+#endif /* __APPLE__ */
 	}
+
+	DBG("offsetFromMaster - %10d %10d s %11d ns\n",
+	    ptpClock->recvSyncSequenceId,
+	    ptpClock->offsetFromMaster.seconds,
+	    ptpClock->offsetFromMaster.nanoseconds);
 
 display:
 	if (rtOpts->displayStats)

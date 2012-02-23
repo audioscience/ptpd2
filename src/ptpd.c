@@ -55,26 +55,17 @@ main(int argc, char **argv)
 	rtOpts.useSysLog = FALSE;
 	rtOpts.ttl = 1;
 
-	rtOpts.probe = FALSE;
-	rtOpts.quickPoll = 0;
+	rtOpts.ptpClockDevice = "/dev/ptp0";
 
 	/* Initialize run time options with command line arguments */
 	if (!(ptpClock = ptpdStartup(argc, argv, &ret, &rtOpts)))
 		return ret;
 
-	
-        if (rtOpts.probe) {
-                // not yet implemented
-        }
-        else {
-		NOTIFY("ptpd %s started\n", VERSION_STRING);
+	/* do the protocol engine */
+	protocol(&rtOpts, ptpClock);
+	/* forever loop.. */
 
-		/* do the protocol engine */
-		protocol(&rtOpts, ptpClock);
-		/* forever loop.. */
-	}
-
-        ptpdShutdown();
+	    ptpdShutdown();
 
 	NOTIFY("self shutdown, probably due to an error\n");
 

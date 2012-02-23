@@ -64,7 +64,7 @@ logToFile()
 	if(rtOpts.logFd != -1)
 		close(rtOpts.logFd);
 	
-	if((rtOpts.logFd = creat(rtOpts.logFile, 0444)) != -1) {
+	if((rtOpts.logFd = creat(rtOpts.file, 0444)) != -1) {
 		dup2(rtOpts.logFd, STDOUT_FILENO);
 		dup2(rtOpts.logFd, STDERR_FILENO);
 	}
@@ -172,7 +172,7 @@ ptpdStartup(int argc, char **argv, Integer16 * ret, RunTimeOpts * rtOpts)
 			rtOpts->ttl = atoi(optarg);
 			break;
 		case 'f':
-			strncpy(rtOpts->logFile, optarg, PATH_MAX);
+			strncpy(rtOpts->file, optarg, PATH_MAX);
 			if(logToFile())
 				noclose = 1;
 			else
@@ -282,8 +282,8 @@ ptpdStartup(int argc, char **argv, Integer16 * ret, RunTimeOpts * rtOpts)
 			break;
 		case 'e':
 			rtOpts->ethernet_mode = TRUE;
-			PERROR("Not implemented yet !");
-			return 0;
+			//PERROR("Not implemented yet !");
+			//return 0;
 			break;
 		case 'h':
 			rtOpts->E2E_mode = TRUE;
@@ -319,8 +319,9 @@ ptpdStartup(int argc, char **argv, Integer16 * ret, RunTimeOpts * rtOpts)
 	}
 
 	/* Init to 0 net buffer */
-	memset(ptpClock->msgIbuf, 0, PACKET_SIZE);
-	memset(ptpClock->msgObuf, 0, PACKET_SIZE);
+	memset(ptpClock->inputBuffer, 0, PACKET_SIZE + 16);
+	memset(ptpClock->outputBuffer, 0, PACKET_SIZE + 16);
+	DBGV(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
 
 
 #ifndef PTPD_NO_DAEMON

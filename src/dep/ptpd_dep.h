@@ -159,10 +159,17 @@ void ptpdShutdown(void);
 void message(int priority, const char *format, ...);
 void displayStats(RunTimeOpts *rtOpts, PtpClock *ptpClock);
 Boolean nanoSleep(TimeInternal*);
-void getTime(TimeInternal*);
-void setTime(TimeInternal*);
+void getTime(clockid_t clkid, TimeInternal* time);
+void setTime(clockid_t clkid, TimeInternal* time);
 double getRand(void);
-Boolean adjFreq(Integer32);
+Boolean adjFreq(clockid_t clkid, Integer32 adj);
+Boolean adjOffset(clockid_t clkid, TimeInternal *time);
+Boolean initPtpClock(RunTimeOpts *rtOpts, PtpClock *ptpClock);
+void ptpClockShutdown(PtpClock *ptpClock);
+#if defined(__APPLE__)
+void 	adjTime(Integer32);
+#endif /* __APPLE__ */
+
 /** \}*/
 
 /** \name timer.c (Unix API dependent)
@@ -171,8 +178,7 @@ Boolean adjFreq(Integer32);
 void initTimer(void);
 void timerUpdate(IntervalTimer*);
 void timerStop(UInteger16,IntervalTimer*);
-//void timerStart(UInteger16,UInteger16,IntervalTimer*);
-void timerStart(UInteger16,float,IntervalTimer*);
+void timerStart(UInteger16,UInteger16,IntervalTimer*);
 Boolean timerExpired(UInteger16,IntervalTimer*);
 /** \}*/
 

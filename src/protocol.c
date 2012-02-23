@@ -222,6 +222,9 @@ doInit(RunTimeOpts *rtOpts, PtpClock *ptpClock)
 {
 	DBG("manufacturerIdentity: %s\n", MANUFACTURER_ID);
 	
+	ptpClock->msgObuf = &(ptpClock->outputBuffer[16]);
+	ptpClock->msgIbuf = &(ptpClock->inputBuffer[16]);
+
 	/* initialize networking */
 	netShutdown(&ptpClock->netPath);
 	if(!netInit(&ptpClock->netPath, rtOpts, ptpClock)) {
@@ -233,6 +236,11 @@ doInit(RunTimeOpts *rtOpts, PtpClock *ptpClock)
 	/* initialize other stuff */
 	initData(rtOpts, ptpClock);
 	initTimer();
+	if (!initPtpClock(rtOpts, ptpClock)) {
+		ERROR("failed to initialize PTP clock\n");
+		toState(PTP_FAULTY, rtOpts, ptpClock);
+		return FALSE;
+	}
 	initClock(rtOpts, ptpClock);
 	m1(ptpClock);
 	msgPackHeader(ptpClock->msgObuf, ptpClock);
@@ -363,6 +371,7 @@ handle(RunTimeOpts *rtOpts, PtpClock *ptpClock)
 	ssize_t length;
 	Boolean isFromSelf;
 	TimeInternal time = { 0, 0 };
+	unsigned short etherType;
   
 	if(!ptpClock->message_activity)	{
 		ret = netSelect(0, &ptpClock->netPath);
@@ -377,10 +386,51 @@ handle(RunTimeOpts *rtOpts, PtpClock *ptpClock)
 		/* else length > 0 */
 	}
   
-	DBGV("handle: something\n");
-  
-	length = netRecvEvent(ptpClock->msgIbuf, &time, &ptpClock->netPath);
+	//DBGV("handle: something\n");
+	if (rtOpts->ethernet_mode)
+	{
+		//DBGV("handle: message to process, checking Raw Socket\n");
+		length = netRecvRaw(&(ptpClock->inputBuffer[2]), // Pointer offset for MAC header
+				&time, &ptpClock->netPath);
+		if(length < 0)
+		{
+			PERROR("handle: failed to receive on the raw socket");
+			toState(PTP_FAULTY, rtOpts, ptpClock);
+			return;
+		}
+		if (length == 0)
+		{
+			// Frame to small, ignore
+			//DBGV("handle: raw socket tiny frame, length %d\n", length);
+			return;
+		}
+		// Raw Socket returned a Frame, do a quick Sanity Check
+		// on the MAC header
+		//
+		if (length < 14)
+		{
+			// Frame to small, ignore
+			DBGV("handle: raw socket tiny frame, length %d\n", length);
+			return;
+		}
+		etherType = flip16(*((unsigned short *)&ptpClock->inputBuffer[14]));
+		if (etherType != 0x88F7)
+		{
+			// Frame invalid Ethertype (not 802.1AS PTP), ignore
+			DBGV("handle: raw socket unexpected Ethertype 0x%4.4x\n", etherType);
+			return;
+		}
+		//
+		// MAC header check OK, subtract the MAC header length
+		// to adjust.  msgIbuf is already set to point to the
+		// PTP message payload.
+		DBGV("Received a Ethertype Message...\n");
+		length -= 14;
+	} else {
+		length = netRecvEvent(ptpClock->msgIbuf, &time, &ptpClock->netPath);
+	}
 	time.seconds += ptpClock->currentUtcOffset;
+
 	if(length < 0) {
 		PERROR("failed to receive on the event socket");
 		toState(PTP_FAULTY, rtOpts, ptpClock);
@@ -392,8 +442,7 @@ handle(RunTimeOpts *rtOpts, PtpClock *ptpClock)
 			PERROR("failed to receive on the general socket");
 			toState(PTP_FAULTY, rtOpts, ptpClock);
 			return;
-		} else if(!length)
-			return;
+		}
 	}
   
 	ptpClock->message_activity = TRUE;
@@ -479,6 +528,7 @@ handle(RunTimeOpts *rtOpts, PtpClock *ptpClock)
 
 	if (rtOpts->displayPackets)
 		msgDump(ptpClock);
+
 }
 
 /*spec 9.5.3*/
@@ -501,7 +551,7 @@ handleAnnounce(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 	case PTP_FAULTY:
 	case PTP_DISABLED:
 		
-		DBGV("Handleannounce : disregard \n");
+		DBGV("Handleannounce : disreguard \n");
 		return;
 		
 	case PTP_UNCALIBRATED:	
@@ -597,7 +647,7 @@ handleSync(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 	case PTP_FAULTY:
 	case PTP_DISABLED:
 		
-		DBGV("HandleSync : disregard \n");
+		DBGV("HandleSync : disreguard \n");
 		return;
 		
 	case PTP_UNCALIBRATED:	
@@ -636,6 +686,7 @@ handleSync(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 					correctionField.seconds;
 				ptpClock->lastSyncCorrectionField.nanoseconds =
 					correctionField.nanoseconds;
+				DBGV("HandleSync: Waiting for Sync Followup...\n");
 				break;
 			} else {
 				msgUnpackSync(ptpClock->msgIbuf,
@@ -647,6 +698,7 @@ handleSync(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 				ptpClock->waitingForFollow = FALSE;
 				toInternalTime(&OriginTimestamp,
 					       &ptpClock->msgTmp.sync.originTimestamp);
+				DBGV("\n\n\n\nupdateOffset\n");
 				updateOffset(&OriginTimestamp,
 					     &ptpClock->sync_receive_time,
 					     &ptpClock->ofm_filt,rtOpts,
@@ -703,7 +755,7 @@ handleFollowUp(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 	case PTP_DISABLED:
 	case PTP_LISTENING:
 		
-		DBGV("Handfollowup : disregard \n");
+		DBGV("Handfollowup : disreguard \n");
 		return;
 		
 	case PTP_UNCALIBRATED:	
@@ -729,6 +781,7 @@ handleFollowUp(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 								  &correctionField);
 					addTime(&correctionField,&correctionField,
 						&ptpClock->lastSyncCorrectionField);
+					DBGV("\n\n\n\nupdateOffset\n");
 					updateOffset(&preciseOriginTimestamp,
 						     &ptpClock->sync_receive_time,&ptpClock->ofm_filt,
 						     rtOpts,ptpClock,
@@ -776,7 +829,7 @@ handleDelayReq(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 		case PTP_DISABLED:
 		case PTP_UNCALIBRATED:
 		case PTP_LISTENING:
-			DBGV("HandledelayReq : disregard \n");
+			DBGV("HandledelayReq : disreguard \n");
 			return;
 
 		case PTP_SLAVE:
@@ -810,7 +863,7 @@ handleDelayReq(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 	    		break;
 		}
 	} else /* (Peer to Peer mode) */
-		ERROR("Delay messages are disregarded in Peer to Peer mode \n");
+		ERROR("Delay messages are disreguard in Peer to Peer mode \n");
 }
 
 void 
@@ -837,7 +890,7 @@ handleDelayResp(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 		case PTP_DISABLED:
 		case PTP_UNCALIBRATED:
 		case PTP_LISTENING:
-			DBGV("HandledelayResp : disregard \n");
+			DBGV("HandledelayResp : disreguard \n");
 			return;
 
 		case PTP_SLAVE:
@@ -906,7 +959,7 @@ handlePDelayReq(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 		case PTP_DISABLED:
 		case PTP_UNCALIBRATED:
 		case PTP_LISTENING:
-			DBGV("HandlePdelayReq : disregard \n");
+			DBGV("HandlePdelayReq : disreguard \n");
 			return;
 		
 		case PTP_SLAVE:
@@ -940,7 +993,8 @@ handlePDelayReq(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 			break;
 		}
 	} else /* (End to End mode..) */
-		ERROR("Peer Delay messages are disregarded in End to End mode \n");
+		ERROR("Peer Delay messages are disregarded in End to End "
+		      "mode \n");
 }
 
 void 
@@ -968,7 +1022,7 @@ handlePDelayResp(MsgHeader *header, Octet *msgIbuf, TimeInternal *time,
 		case PTP_DISABLED:
 		case PTP_UNCALIBRATED:
 		case PTP_LISTENING:
-			DBGV("HandlePdelayResp : disregard \n");
+			DBGV("HandlePdelayResp : disreguard \n");
 			return;
 		
 		case PTP_SLAVE:
@@ -1089,7 +1143,8 @@ handlePDelayResp(MsgHeader *header, Octet *msgIbuf, TimeInternal *time,
 			break;
 		}
 	} else { /* (End to End mode..) */
-		ERROR("Peer Delay messages are disregarded in End to End mode \n");
+		ERROR("Peer Delay messages are disregarded in End to End "
+		      "mode \n");
 	}
 }
 
@@ -1110,12 +1165,15 @@ handlePDelayRespFollowUp(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 			return;
 		}	
 	
+		if (isFromSelf)
+			return;
+
 		switch(ptpClock->portState) {
 		case PTP_INITIALIZING:
 		case PTP_FAULTY:
 		case PTP_DISABLED:
 		case PTP_UNCALIBRATED:
-			DBGV("HandlePdelayResp : disregard \n");
+			DBGV("HandlePdelayResp : disreguard \n");
 			return;
 		
 		case PTP_SLAVE:
@@ -1139,8 +1197,8 @@ handlePDelayRespFollowUp(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 				updatePeerDelay (&ptpClock->owd_filt,
 						 rtOpts, ptpClock,
 						 &correctionField,TRUE);
-				break;
 			}
+			break;
 		case PTP_MASTER:
 			if (header->sequenceId == 
 			    ptpClock->sentPDelayReqSequenceId-1) {
@@ -1162,13 +1220,14 @@ handlePDelayRespFollowUp(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 				updatePeerDelay(&ptpClock->owd_filt,
 						rtOpts, ptpClock,
 						&correctionField,TRUE);
-				break;
 			}
+			break;
 		default:
 			DBGV("Disregard PdelayRespFollowUp message  \n");
 		}
 	} else { /* (End to End mode..) */
-		ERROR("Peer Delay messages are disregarded in End to End mode \n");
+		ERROR("Peer Delay messages are disregarded in End to End "
+		      "mode \n");
 	}
 }
 
@@ -1189,9 +1248,24 @@ void
 issueAnnounce(RunTimeOpts *rtOpts,PtpClock *ptpClock)
 {
 	msgPackAnnounce(ptpClock->msgObuf,ptpClock);
-	
-	if (!netSendGeneral(ptpClock->msgObuf,ANNOUNCE_LENGTH,
-			    &ptpClock->netPath)) {
+	int ret;
+
+	DBGV("issueAnnounce: netSendRaw, sending AnnounceSequenceId = %d\n",
+			ptpClock->sentAnnounceSequenceId);
+
+	if (rtOpts->ethernet_mode)
+	{
+		ret = netSendRaw(&(ptpClock->outputBuffer[2]),
+				(ANNOUNCE_LENGTH+14),
+				&ptpClock->netPath,
+				FALSE
+		);
+	}  else  {
+		ret = netSendGeneral(ptpClock->msgObuf,ANNOUNCE_LENGTH,
+				&ptpClock->netPath);
+	}
+
+	if(!ret)  {
 		toState(PTP_FAULTY,rtOpts,ptpClock);
 		DBGV("Announce message can't be sent -> FAULTY state \n");
 	} else {
@@ -1201,19 +1275,31 @@ issueAnnounce(RunTimeOpts *rtOpts,PtpClock *ptpClock)
 }
 
 
-
 /*Pack and send on event multicast ip adress a Sync message*/
 void 
 issueSync(RunTimeOpts *rtOpts,PtpClock *ptpClock)
 {
 	Timestamp originTimestamp;
 	TimeInternal internalTime;
-	getTime(&internalTime);
+	getTime(ptpClock->clkid, &internalTime);
 	fromInternalTime(&internalTime,&originTimestamp);
+	int ret;
 	
 	msgPackSync(ptpClock->msgObuf,&originTimestamp,ptpClock);
-	
-	if (!netSendEvent(ptpClock->msgObuf,SYNC_LENGTH,&ptpClock->netPath)) {
+
+	DBGV("issueSync: netSendRaw, sequence: %d\n",
+			ptpClock->sentSyncSequenceId);
+	if (rtOpts->ethernet_mode)
+	{
+		ret = netSendRaw(&(ptpClock->outputBuffer[2]),
+				(SYNC_LENGTH+14),
+				&ptpClock->netPath,
+				FALSE);
+	} else {
+		ret = netSendEvent(ptpClock->msgObuf,SYNC_LENGTH,&ptpClock->netPath);
+	}
+
+	if(!ret)  {
 		toState(PTP_FAULTY,rtOpts,ptpClock);
 		DBGV("Sync message can't be sent -> FAULTY state \n");
 	} else {
@@ -1229,11 +1315,22 @@ issueFollowup(TimeInternal *time,RunTimeOpts *rtOpts,PtpClock *ptpClock)
 {
 	Timestamp preciseOriginTimestamp;
 	fromInternalTime(time,&preciseOriginTimestamp);
+	int ret;
 	
 	msgPackFollowUp(ptpClock->msgObuf,&preciseOriginTimestamp,ptpClock);
-	
-	if (!netSendGeneral(ptpClock->msgObuf,FOLLOW_UP_LENGTH,
-			    &ptpClock->netPath)) {
+
+	if (rtOpts->ethernet_mode)
+	{
+		ret = netSendRaw(&(ptpClock->outputBuffer[2]),
+				(FOLLOW_UP_LENGTH+14),
+				&ptpClock->netPath,
+				FALSE);
+	} else {
+		ret = netSendGeneral(ptpClock->msgObuf,FOLLOW_UP_LENGTH,
+				&ptpClock->netPath);
+	}
+
+	if(!ret) {
 		toState(PTP_FAULTY,rtOpts,ptpClock);
 		DBGV("FollowUp message can't be sent -> FAULTY state \n");
 	} else {
@@ -1248,13 +1345,23 @@ issueDelayReq(RunTimeOpts *rtOpts,PtpClock *ptpClock)
 {
 	Timestamp originTimestamp;
 	TimeInternal internalTime;
-	getTime(&internalTime);
+	getTime(ptpClock->clkid, &internalTime);
 	fromInternalTime(&internalTime,&originTimestamp);
+	int ret;
 
 	msgPackDelayReq(ptpClock->msgObuf,&originTimestamp,ptpClock);
 
-	if (!netSendEvent(ptpClock->msgObuf,DELAY_REQ_LENGTH,
-			  &ptpClock->netPath)) {
+	if (rtOpts->ethernet_mode)
+	{
+		ret = netSendRaw(&(ptpClock->outputBuffer[2]),
+				(DELAY_REQ_LENGTH+14),
+				&ptpClock->netPath,
+				FALSE);
+	} else {
+		ret = netSendEvent(ptpClock->msgObuf,DELAY_REQ_LENGTH,
+				&ptpClock->netPath);
+	}
+	if(!ret) {
 		toState(PTP_FAULTY,rtOpts,ptpClock);
 		DBGV("delayReq message can't be sent -> FAULTY state \n");
 	} else {
@@ -1269,13 +1376,24 @@ issuePDelayReq(RunTimeOpts *rtOpts,PtpClock *ptpClock)
 {
 	Timestamp originTimestamp;
 	TimeInternal internalTime;
-	getTime(&internalTime);
+	getTime(ptpClock->clkid, &internalTime);
 	fromInternalTime(&internalTime,&originTimestamp);
+	int ret;
 	
 	msgPackPDelayReq(ptpClock->msgObuf,&originTimestamp,ptpClock);
 
-	if (!netSendPeerEvent(ptpClock->msgObuf,PDELAY_REQ_LENGTH,
-			      &ptpClock->netPath)) {
+	if (rtOpts->ethernet_mode)
+	{
+		ret = netSendRaw(&(ptpClock->outputBuffer[2]),
+				(PDELAY_REQ_LENGTH+14),
+				&ptpClock->netPath,
+				FALSE);
+	} else {
+		ret = netSendPeerEvent(ptpClock->msgObuf,PDELAY_REQ_LENGTH,
+				&ptpClock->netPath);
+	}
+
+	if(!ret) {
 		toState(PTP_FAULTY,rtOpts,ptpClock);
 		DBGV("PdelayReq message can't be sent -> FAULTY state \n");
 	} else {
@@ -1291,11 +1409,23 @@ issuePDelayResp(TimeInternal *time,MsgHeader *header,RunTimeOpts *rtOpts,
 {
 	Timestamp requestReceiptTimestamp;
 	fromInternalTime(time,&requestReceiptTimestamp);
+	int ret;
+
 	msgPackPDelayResp(ptpClock->msgObuf,header,
 			  &requestReceiptTimestamp,ptpClock);
 
-	if (!netSendPeerEvent(ptpClock->msgObuf,PDELAY_RESP_LENGTH,
-			      &ptpClock->netPath)) {
+	if(rtOpts->ethernet_mode)
+	{
+		ret = netSendRaw(&(ptpClock->outputBuffer[2]),
+				(PDELAY_RESP_LENGTH+14),
+				&ptpClock->netPath,
+				FALSE);
+	} else {
+		ret = netSendPeerEvent(ptpClock->msgObuf,PDELAY_RESP_LENGTH,
+				&ptpClock->netPath);
+	}
+
+	if(!ret) {
 		toState(PTP_FAULTY,rtOpts,ptpClock);
 		DBGV("PdelayResp message can't be sent -> FAULTY state \n");
 	} else {
@@ -1311,11 +1441,23 @@ issueDelayResp(TimeInternal *time,MsgHeader *header,RunTimeOpts *rtOpts,
 {
 	Timestamp requestReceiptTimestamp;
 	fromInternalTime(time,&requestReceiptTimestamp);
+	int ret;
+
 	msgPackDelayResp(ptpClock->msgObuf,header,&requestReceiptTimestamp,
 			 ptpClock);
 
-	if (!netSendGeneral(ptpClock->msgObuf,PDELAY_RESP_LENGTH,
-			    &ptpClock->netPath)) {
+	if(rtOpts->ethernet_mode)
+	{
+		ret = netSendRaw(&(ptpClock->outputBuffer[2]),
+				(PDELAY_RESP_LENGTH+14),
+				&ptpClock->netPath,
+				FALSE);
+	} else {
+		ret = netSendGeneral(ptpClock->msgObuf,PDELAY_RESP_LENGTH,
+			    &ptpClock->netPath);
+	}
+
+	if(!ret) {
 		toState(PTP_FAULTY,rtOpts,ptpClock);
 		DBGV("delayResp message can't be sent -> FAULTY state \n");
 	} else {
@@ -1330,13 +1472,24 @@ void issuePDelayRespFollowUp(TimeInternal *time, MsgHeader *header,
 {
 	Timestamp responseOriginTimestamp;
 	fromInternalTime(time,&responseOriginTimestamp);
+	int ret;
 
 	msgPackPDelayRespFollowUp(ptpClock->msgObuf,header,
 				  &responseOriginTimestamp,ptpClock);
 
-	if (!netSendPeerGeneral(ptpClock->msgObuf,
+	if (rtOpts->ethernet_mode)
+	{
+		ret = netSendRaw(&(ptpClock->outputBuffer[2]),
+				(PDELAY_RESP_FOLLOW_UP_LENGTH+14),
+				&ptpClock->netPath,
+				FALSE);
+	} else {
+		ret = netSendPeerGeneral(ptpClock->msgObuf,
 				PDELAY_RESP_FOLLOW_UP_LENGTH,
-				&ptpClock->netPath)) {
+				&ptpClock->netPath);
+	}
+
+	if(!ret) {
 		toState(PTP_FAULTY,rtOpts,ptpClock);
 		DBGV("PdelayRespFollowUp message can't be sent -> FAULTY state \n");
 	} else {
