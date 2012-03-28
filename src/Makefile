@@ -10,7 +10,7 @@ PHC_SRC		= dep/phc.c
 
 RM = rm -f
 CFLAGS+= -Wall # -DBSD_INTERFACE_FUNCTIONS
-#CPPFLAGS =   -DPTPD_DBGV -DPTPD_NO_DAEMON
+CPPFLAGS =   -DPTPD_DBG
 LDFLAGS+= -lm -lrt
 
 PROG = ptpd2
