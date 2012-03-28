@@ -51,6 +51,7 @@ Boolean adjFreq(clockid_t clkid, Integer32 adj)
 		ERROR("failed adjust the PTP clock: %s\n", strerror(errno));
 		return FALSE;
 	}
+	NOTIFY("adjusted system clock by %d\n", adj);
 	return TRUE;
 }
 
