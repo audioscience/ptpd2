@@ -514,7 +514,7 @@ again:
 				ts = &tmp[1];
 			}
 			if (tmp[2].tv_sec && tmp[2].tv_nsec) {
-				DBG("HW RAW Tx TIMESTAMP\n");
+				// DBG("HW RAW Tx TIMESTAMP\n");
 				ts = &tmp[2];
 				DBG("ts->tv_sec = %ld, ts->tv_nsec = %ld\n", ts->tv_sec, ts->tv_nsec);
 			}
@@ -535,14 +535,14 @@ again:
 		return -1;
 	}
 
-	if(netPath->rawSock > 0) {
-		if((pdu[14] & 0xf) != 0) {
-			DBGV("Non Sync Packet, So No followup...\n");
-			return 0;
-		}
-	} else {
-		if((pdu[0] & 0xf) != 0) {
-			DBGV("Non Sync Packet, So No followup...\n");
+	{
+		int ptype = pdu[0];
+		if (netPath->rawSock > 0)
+			ptype = pdu[14];
+		
+		ptype &= 0x0F;
+		if ((ptype != SYNC) && (ptype != PDELAY_RESP)) {
+			DBG("Non followup packet\n", ptype);
 			return 0;
 		}
 	}
