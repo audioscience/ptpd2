@@ -130,6 +130,10 @@ ssize_t netSendEvent(Octet*,UInteger16,NetPath*);
 ssize_t netSendGeneral(Octet*,UInteger16,NetPath*);
 ssize_t netSendPeerGeneral(Octet*,UInteger16,NetPath*);
 ssize_t netSendPeerEvent(Octet*,UInteger16,NetPath*);
+
+ssize_t netRecvRaw(Octet * buf, TimeInternal * time, NetPath * netPath);
+ssize_t netSendRaw(Octet *buf, UInteger16 length, NetPath *netPath, Boolean pdelay);
+
 /** \}*/
 
 /** \name servo.c
