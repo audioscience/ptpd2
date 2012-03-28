@@ -175,7 +175,7 @@ msgHeader_display(MsgHeader * header)
 	DBGV("Message header : \n");
 	DBGV("\n");
 	DBGV("transportSpecific : %d\n", header->transportSpecific);
-	DBGV("messageType : %d\n", header->messageType);
+	DBG("messageType : %d\n", header->messageType);
 	DBGV("versionPTP : %d\n", header->versionPTP);
 	DBGV("messageLength : %d\n", header->messageLength);
 	DBGV("domainNumber : %d\n", header->domainNumber);
