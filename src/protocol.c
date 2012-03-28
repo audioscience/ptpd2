@@ -326,19 +326,19 @@ doState(RunTimeOpts *rtOpts, PtpClock *ptpClock)
 
 	case PTP_MASTER:
 		if(timerExpired(SYNC_INTERVAL_TIMER, ptpClock->itimer)) {
-			DBGV("event SYNC_INTERVAL_TIMEOUT_EXPIRES\n");
+			DBG("Master event SYNC_INTERVAL_TIMEOUT_EXPIRES\n");
 			issueSync(rtOpts, ptpClock);
 		}
-		
+
 		if(timerExpired(ANNOUNCE_INTERVAL_TIMER, ptpClock->itimer)) {
-			DBGV("event ANNOUNCE_INTERVAL_TIMEOUT_EXPIRES\n");
+			DBG("Master event ANNOUNCE_INTERVAL_TIMEOUT_EXPIRES\n");
 			issueAnnounce(rtOpts, ptpClock);
 		}
-		
+
 		if (!rtOpts->E2E_mode) {
 			if(timerExpired(PDELAYREQ_INTERVAL_TIMER,
 					ptpClock->itimer)) {
-				DBGV("event PDELAYREQ_INTERVAL_TIMEOUT_EXPIRES\n");
+				DBG("Master event PDELAYREQ_INTERVAL_TIMEOUT_EXPIRES\n");
 				issuePDelayReq(rtOpts,ptpClock);
 			}
 		}
@@ -634,8 +634,8 @@ handleSync(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 	TimeInternal correctionField;
 
 	Boolean isFromCurrentParent = FALSE;
-	DBGV("Sync message received : \n");
-	
+	DBG("Sync message received : \n");
+
 	if(length < SYNC_LENGTH) {
 		ERROR("short Sync message\n");
 		toState(PTP_FAULTY, rtOpts, ptpClock);
@@ -729,8 +729,8 @@ void
 handleFollowUp(MsgHeader *header, Octet *msgIbuf, ssize_t length, 
 	       Boolean isFromSelf, RunTimeOpts *rtOpts, PtpClock *ptpClock)
 {
-	DBGV("Handlefollowup : Follow up message received \n");
-	
+	DBG("Handlefollowup : Follow up message received \n");
+
 	TimeInternal preciseOriginTimestamp;
 	TimeInternal correctionField;
 	Boolean isFromCurrentParent = FALSE;
@@ -959,7 +959,7 @@ handlePDelayReq(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 		case PTP_DISABLED:
 		case PTP_UNCALIBRATED:
 		case PTP_LISTENING:
-			DBGV("HandlePdelayReq : disreguard \n");
+			DBGV("HandlePdelayReq : disregard\n");
 			return;
 		
 		case PTP_SLAVE:
@@ -1173,7 +1173,7 @@ handlePDelayRespFollowUp(MsgHeader *header, Octet *msgIbuf, ssize_t length,
 		case PTP_FAULTY:
 		case PTP_DISABLED:
 		case PTP_UNCALIBRATED:
-			DBGV("HandlePdelayResp : disreguard \n");
+			DBGV("HandlePdelayResp : disreguard\n");
 			return;
 		
 		case PTP_SLAVE:
@@ -1334,7 +1334,7 @@ issueFollowup(TimeInternal *time,RunTimeOpts *rtOpts,PtpClock *ptpClock)
 		toState(PTP_FAULTY,rtOpts,ptpClock);
 		DBGV("FollowUp message can't be sent -> FAULTY state \n");
 	} else {
-		DBGV("FollowUp MSG sent ! \n");
+		DBG("FollowUp MSG sent\n");
 	}
 }
 
@@ -1365,7 +1365,7 @@ issueDelayReq(RunTimeOpts *rtOpts,PtpClock *ptpClock)
 		toState(PTP_FAULTY,rtOpts,ptpClock);
 		DBGV("delayReq message can't be sent -> FAULTY state \n");
 	} else {
-		DBGV("DelayReq MSG sent ! \n");
+		DBG("DelayReq MSG sent\n");
 		ptpClock->sentDelayReqSequenceId++;
 	}
 }
@@ -1397,7 +1397,7 @@ issuePDelayReq(RunTimeOpts *rtOpts,PtpClock *ptpClock)
 		toState(PTP_FAULTY,rtOpts,ptpClock);
 		DBGV("PdelayReq message can't be sent -> FAULTY state \n");
 	} else {
-		DBGV("PDelayReq MSG sent ! \n");
+		DBG("PDelayReq MSG sent\n");
 		ptpClock->sentPDelayReqSequenceId++;
 	}
 }
@@ -1429,7 +1429,7 @@ issuePDelayResp(TimeInternal *time,MsgHeader *header,RunTimeOpts *rtOpts,
 		toState(PTP_FAULTY,rtOpts,ptpClock);
 		DBGV("PdelayResp message can't be sent -> FAULTY state \n");
 	} else {
-		DBGV("PDelayResp MSG sent ! \n");
+		DBG("PDelayResp MSG sent\n");
 	}
 }
 
@@ -1461,7 +1461,7 @@ issueDelayResp(TimeInternal *time,MsgHeader *header,RunTimeOpts *rtOpts,
 		toState(PTP_FAULTY,rtOpts,ptpClock);
 		DBGV("delayResp message can't be sent -> FAULTY state \n");
 	} else {
-		DBGV("PDelayResp MSG sent ! \n");
+		DBG("PDelayResp MSG sent\n");
 	}
 }
 
@@ -1493,7 +1493,7 @@ void issuePDelayRespFollowUp(TimeInternal *time, MsgHeader *header,
 		toState(PTP_FAULTY,rtOpts,ptpClock);
 		DBGV("PdelayRespFollowUp message can't be sent -> FAULTY state \n");
 	} else {
-		DBGV("PDelayRespFollowUp MSG sent ! \n");
+		DBG("PDelayRespFollowUp MSG sent\n");
 	}
 }
 
