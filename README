@@ -1,3 +1,15 @@
+README for ASI version of PTPd
+
+This code orginated at SourceForge http://sourceforge.net/projects/ptpd2/
+
+then in branch ti-patches, the relevant parts of
+http://processors.wiki.ti.com/index.php/File:Ptpd.tar.gz
+were added starting at approximately where TI took their base code.
+
+Some subsequent changes were also picked into this branch,
+then ASI development began.
+
+===============================================================================
 README for PTPd
 
 
