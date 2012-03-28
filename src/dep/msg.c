@@ -169,7 +169,7 @@ msgPackFollowUp(void *buf, Timestamp * preciseOriginTimestamp, PtpClock * ptpClo
 	/* RAZ messageType */
 	*(char *)(buf + 0) = *(char *)(buf + 0) | 0x08;
 	/* Table 19 */
-	*(UInteger16 *) (buf + 2) = flip16(FOLLOW_UP_LENGTH);
+	*(UInteger16 *) (buf + 2) = flip16(FOLLOW_UP_LENGTH + 32);
 	*(UInteger16 *) (buf + 30) = flip16(ptpClock->sentSyncSequenceId - 1);
 	/* sentSyncSequenceId has already been incremented in "issueSync" */
 	*(UInteger8 *) (buf + 32) = 0x02;
@@ -183,6 +183,21 @@ msgPackFollowUp(void *buf, Timestamp * preciseOriginTimestamp, PtpClock * ptpClo
 		flip32(preciseOriginTimestamp->secondsField.lsb);
 	*(UInteger32 *) (buf + 40) = 
 		flip32(preciseOriginTimestamp->nanosecondsField);
+	/* Follow_Up information TLV */
+	*(UInteger16 *) (buf + 44) = flip16(3);  // tlv type
+	*(UInteger16 *) (buf + 46) = flip16(28);  // tlv length
+
+	*(UInteger16 *) (buf + 52) = flip16(1);  // org subtype (3 octets)
+
+	*(UInteger32 *) (buf + 48) = flip32(0x0080C200);  // org Id (3 octets)
+
+	*(UInteger32 *) (buf + 54) = 0;  // cumulativeScaledRateOffset
+	*(UInteger16 *) (buf + 58) = 0;  // gmTimeBaseIndicator
+	*(UInteger32 *) (buf + 60) = 0;  // gmLastPhaseChange
+	*(UInteger32 *) (buf + 64) = 0;  // gmLastPhaseChange
+	*(UInteger32 *) (buf + 68) = 0;  // gmLastPhaseChange
+	*(UInteger32 *) (buf + 72) = 0;  // scaledLastGmeFreqChange
+	/* end offset 76 */
 }
 
 /*Unpack Follow_up message from IN buffer of ptpClock to msgtmp.follow*/
