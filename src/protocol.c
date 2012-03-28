@@ -1322,7 +1322,7 @@ issueFollowup(TimeInternal *time,RunTimeOpts *rtOpts,PtpClock *ptpClock)
 	if (rtOpts->ethernet_mode)
 	{
 		ret = netSendRaw(&(ptpClock->outputBuffer[2]),
-				(FOLLOW_UP_LENGTH+14),
+				(14 + FOLLOW_UP_LENGTH + 32),
 				&ptpClock->netPath,
 				FALSE);
 	} else {
