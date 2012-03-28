@@ -60,7 +60,7 @@ typedef struct {
 } one_way_delay_filter;
 
 
-#define TX_STACK_SIZE 1
+#define TX_STACK_SIZE 2
 
 struct tx_item {
   int len;
