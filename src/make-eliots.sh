@@ -1,6 +1,6 @@
 
 # Location of target linux headers
-ARM_KBUILD_OUTPUT=$HOME/asi/external/linux-omap3/usr
+ARM_KBUILD_OUTPUT=$HOME/asi/external/linux-omap3
 # Root of NFS filesystem for network boot
 ARM_NFS_ROOT=$HOME/asi/firmware/ezsdk_target_fs_5_03_01_15
 # ARM c compiler

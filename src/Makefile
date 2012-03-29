@@ -4,7 +4,7 @@ USE_LINUX_PHC	?= y
 
 #ifeq ($(USE_LINUX_PHC),y)
 KBUILD_OUTPUT	?= /lib/modules/$(shell uname -r)/build
-CFLAGS		= -DUSE_LINUX_PHC -I$(KBUILD_OUTPUT)/include
+CFLAGS		= -DUSE_LINUX_PHC -I$(KBUILD_OUTPUT)/usr/include
 PHC_SRC		= dep/phc.c
 #endif
 
