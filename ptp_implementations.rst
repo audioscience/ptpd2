@@ -22,6 +22,32 @@ Includes AS for freescale mpc831x
     For ptpv2d, the source base used to create the this software
     was the sourceforge.net ptpd version v1rc1.
 
+ptpd-sourceforge
+----------------
+:homepage: http://ptpd.sourceforge.net/
+:scm: https://ptpd2.svn.sourceforge.net/svnroot/ptpd/trunk
+:licence: 2 Clause BSD Open Source License
+:dates: 2007 to 2011-02-22
+
+..
+        The PTP daemon (PTPd) implements the Precision Time protocol (PTP)
+         as defined by the relevant IEEE 1588 standard. 
+         PTP Version 1 implements IEEE-1588-2002, and PTP Version 2 implements IEEE-1588-2008. 
+         PTP was developed to provide very precise time coordination of LAN connected computers.
+
+        PTPd is a complete implementation of the IEEE 1588 specification 
+        for a standard (non-boundary) clock. PTPd has been tested with 
+        and is known to work properly with other IEEE 1588 implementations. 
+        The source code for PTPd is freely available under a BSD-style license. 
+        Thanks to contributions from users, PTPd is becoming an increasingly 
+        portable, interoperable, and stable IEEE 1588 implementation.
+
+        PTPd can run on most 32-bit or 64-bit, little- or big-endian processors. 
+        It does not require an FPU, so it is great for embedded processors. 
+        PTPd currently runs on Linux, uClinux, FreeBSD, and NetBSD. 
+        It should also be easy to port to other platforms.
+
+        PTPd is free. Everyone is welcome to use and contribute to PTPd. 
 
 ptpd2-sourceforge
 -----------------
