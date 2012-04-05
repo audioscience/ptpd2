@@ -34,6 +34,10 @@ TAGFILES = GPATH GRTAGS GSYMS GTAGS cscope.in.out cscope.out cscope.po.out
 
 all: $(PROG)
 
+setclock: setclock.o
+	$(CC) $(LDFLAGS) -o $@ setclock.o
+
+
 $(PROG): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS)
 
