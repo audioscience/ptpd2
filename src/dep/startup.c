@@ -123,7 +123,7 @@ ptpdStartup(int argc, char **argv, Integer16 * ret, RunTimeOpts * rtOpts)
 				"-T                set multicast time to live\n"
 				"-d                display stats\n"
 				"-D                display stats in .csv format\n"
-				"-P                display each packet-n"
+				"-P                display each packet\n"
 				"-R                record data about sync packets in a file\n"				
 				"\n"
 				"-x                do not reset the clock if off by more than one second\n"
