@@ -2,16 +2,16 @@
  * @file   msg.c
  * @author George Neville-Neil <gnn@neville-neil.com>
  * @date   Tue Jul 20 16:17:05 2010
- * 
+ *
  * @brief  Functions to pack and unpack messages.
- * 
+ *
  * See spec annex d
  */
 
 #include "../ptpd.h"
 
 /*Unpack Header from IN buffer to msgTmpHeader field */
-void 
+void
 msgUnpackHeader(void *buf, MsgHeader * header)
 {
 	header->transportSpecific = (*(Nibble *) (buf + 0)) >> 4;
@@ -25,9 +25,9 @@ msgUnpackHeader(void *buf, MsgHeader * header)
 	memcpy(&header->correctionfield.lsb, (buf + 12), 4);
 	header->correctionfield.msb = flip32(header->correctionfield.msb);
 	header->correctionfield.lsb = flip32(header->correctionfield.lsb);
-	memcpy(header->sourcePortIdentity.clockIdentity, (buf + 20), 
+	memcpy(header->sourcePortIdentity.clockIdentity, (buf + 20),
 	       CLOCK_IDENTITY_LENGTH);
-	header->sourcePortIdentity.portNumber = 
+	header->sourcePortIdentity.portNumber =
 		flip16(*(UInteger16 *) (buf + 28));
 	header->sequenceId = flip16(*(UInteger16 *) (buf + 30));
 	header->controlField = (*(UInteger8 *) (buf + 32));
@@ -39,7 +39,7 @@ msgUnpackHeader(void *buf, MsgHeader * header)
 }
 
 /*Pack header message into OUT buffer of ptpClock*/
-void 
+void
 msgPackHeader(void *buf, PtpClock * ptpClock)
 {
 	Nibble transport = 0x10;
@@ -53,7 +53,7 @@ msgPackHeader(void *buf, PtpClock * ptpClock)
 		*(UInteger8 *) (buf + 6) = TWO_STEP_FLAG;
 
 	memset((buf + 8), 0, 8);
-	memcpy((buf + 20), ptpClock->portIdentity.clockIdentity, 
+	memcpy((buf + 20), ptpClock->portIdentity.clockIdentity,
 	       CLOCK_IDENTITY_LENGTH);
 	*(UInteger16 *) (buf + 28) = flip16(ptpClock->portIdentity.portNumber);
 	*(UInteger8 *) (buf + 33) = 0x7F;
@@ -63,7 +63,7 @@ msgPackHeader(void *buf, PtpClock * ptpClock)
 
 
 /*Pack SYNC message into OUT buffer of ptpClock*/
-void 
+void
 msgPackSync(void *buf, Timestamp * originTimestamp, PtpClock * ptpClock)
 {
 	/* changes in header */
@@ -85,14 +85,14 @@ msgPackSync(void *buf, Timestamp * originTimestamp, PtpClock * ptpClock)
 }
 
 /*Unpack Sync message from IN buffer */
-void 
+void
 msgUnpackSync(void *buf, MsgSync * sync)
 {
-	sync->originTimestamp.secondsField.msb = 
+	sync->originTimestamp.secondsField.msb =
 		flip16(*(UInteger16 *) (buf + 34));
-	sync->originTimestamp.secondsField.lsb = 
+	sync->originTimestamp.secondsField.lsb =
 		flip32(*(UInteger32 *) (buf + 36));
-	sync->originTimestamp.nanosecondsField = 
+	sync->originTimestamp.nanosecondsField =
 		flip32(*(UInteger32 *) (buf + 40));
 
 #ifdef PTPD_DBG
@@ -103,7 +103,7 @@ msgUnpackSync(void *buf, MsgSync * sync)
 
 
 /*Pack Announce message into OUT buffer of ptpClock*/
-void 
+void
 msgPackAnnounce(void *buf, PtpClock * ptpClock)
 {
 	/* changes in header */
@@ -123,7 +123,7 @@ msgPackAnnounce(void *buf, PtpClock * ptpClock)
 	*(UInteger8 *) (buf + 47) = ptpClock->grandmasterPriority1;
 	*(UInteger8 *) (buf + 48) = ptpClock->clockQuality.clockClass;
 	*(Enumeration8 *) (buf + 49) = ptpClock->clockQuality.clockAccuracy;
-	*(UInteger16 *) (buf + 50) = 
+	*(UInteger16 *) (buf + 50) =
 		flip16(ptpClock->clockQuality.offsetScaledLogVariance);
 	*(UInteger8 *) (buf + 52) = ptpClock->grandmasterPriority2;
 	memcpy((buf + 53), ptpClock->grandmasterIdentity, CLOCK_IDENTITY_LENGTH);
@@ -132,36 +132,36 @@ msgPackAnnounce(void *buf, PtpClock * ptpClock)
 }
 
 /*Unpack Announce message from IN buffer of ptpClock to msgtmp.Announce*/
-void 
+void
 msgUnpackAnnounce(void *buf, MsgAnnounce * announce)
 {
-	announce->originTimestamp.secondsField.msb = 
+	announce->originTimestamp.secondsField.msb =
 		flip16(*(UInteger16 *) (buf + 34));
-	announce->originTimestamp.secondsField.lsb = 
+	announce->originTimestamp.secondsField.lsb =
 		flip32(*(UInteger32 *) (buf + 36));
-	announce->originTimestamp.nanosecondsField = 
+	announce->originTimestamp.nanosecondsField =
 		flip32(*(UInteger32 *) (buf + 40));
 	announce->currentUtcOffset = flip16(*(UInteger16 *) (buf + 44));
 	announce->grandmasterPriority1 = *(UInteger8 *) (buf + 47);
-	announce->grandmasterClockQuality.clockClass = 
+	announce->grandmasterClockQuality.clockClass =
 		*(UInteger8 *) (buf + 48);
-	announce->grandmasterClockQuality.clockAccuracy = 
+	announce->grandmasterClockQuality.clockAccuracy =
 		*(Enumeration8 *) (buf + 49);
-	announce->grandmasterClockQuality.offsetScaledLogVariance = 
+	announce->grandmasterClockQuality.offsetScaledLogVariance =
 		flip16(*(UInteger16 *) (buf + 50));
 	announce->grandmasterPriority2 = *(UInteger8 *) (buf + 52);
-	memcpy(announce->grandmasterIdentity, (buf + 53), 
+	memcpy(announce->grandmasterIdentity, (buf + 53),
 	       CLOCK_IDENTITY_LENGTH);
 	announce->stepsRemoved = flip16(*(UInteger16 *) (buf + 61));
 	announce->timeSource = *(Enumeration8 *) (buf + 63);
-	
+
 #ifdef PTPD_DBG
 	msgAnnounce_display(announce);
 #endif /* PTPD_DBG */
 }
 
 /*pack Follow_up message into OUT buffer of ptpClock*/
-void 
+void
 msgPackFollowUp(void *buf, Timestamp * preciseOriginTimestamp, PtpClock * ptpClock)
 {
 	/* changes in header */
@@ -177,11 +177,11 @@ msgPackFollowUp(void *buf, Timestamp * preciseOriginTimestamp, PtpClock * ptpClo
 	*(Integer8 *) (buf + 33) = ptpClock->logSyncInterval;
 
 	/* Follow_up message */
-	*(UInteger16 *) (buf + 34) = 
+	*(UInteger16 *) (buf + 34) =
 		flip16(preciseOriginTimestamp->secondsField.msb);
-	*(UInteger32 *) (buf + 36) = 
+	*(UInteger32 *) (buf + 36) =
 		flip32(preciseOriginTimestamp->secondsField.lsb);
-	*(UInteger32 *) (buf + 40) = 
+	*(UInteger32 *) (buf + 40) =
 		flip32(preciseOriginTimestamp->nanosecondsField);
 	/* Follow_Up information TLV */
 	*(UInteger16 *) (buf + 44) = flip16(3);  // tlv type
@@ -201,14 +201,14 @@ msgPackFollowUp(void *buf, Timestamp * preciseOriginTimestamp, PtpClock * ptpClo
 }
 
 /*Unpack Follow_up message from IN buffer of ptpClock to msgtmp.follow*/
-void 
+void
 msgUnpackFollowUp(void *buf, MsgFollowUp * follow)
 {
-	follow->preciseOriginTimestamp.secondsField.msb = 
+	follow->preciseOriginTimestamp.secondsField.msb =
 		flip16(*(UInteger16 *) (buf + 34));
-	follow->preciseOriginTimestamp.secondsField.lsb = 
+	follow->preciseOriginTimestamp.secondsField.lsb =
 		flip32(*(UInteger32 *) (buf + 36));
-	follow->preciseOriginTimestamp.nanosecondsField = 
+	follow->preciseOriginTimestamp.nanosecondsField =
 		flip32(*(UInteger32 *) (buf + 40));
 
 #ifdef PTPD_DBG
@@ -219,7 +219,7 @@ msgUnpackFollowUp(void *buf, MsgFollowUp * follow)
 
 
 /*pack PdelayReq message into OUT buffer of ptpClock*/
-void 
+void
 msgPackPDelayReq(void *buf, Timestamp * originTimestamp, PtpClock * ptpClock)
 {
 	/* changes in header */
@@ -245,7 +245,7 @@ msgPackPDelayReq(void *buf, Timestamp * originTimestamp, PtpClock * ptpClock)
 }
 
 /*pack delayReq message into OUT buffer of ptpClock*/
-void 
+void
 msgPackDelayReq(void *buf, Timestamp * originTimestamp, PtpClock * ptpClock)
 {
 	/* changes in header */
@@ -268,7 +268,7 @@ msgPackDelayReq(void *buf, Timestamp * originTimestamp, PtpClock * ptpClock)
 }
 
 /*pack delayResp message into OUT buffer of ptpClock*/
-void 
+void
 msgPackDelayResp(void *buf, MsgHeader * header, Timestamp * receiveTimestamp, PtpClock * ptpClock)
 {
 	/* changes in header */
@@ -285,20 +285,20 @@ msgPackDelayResp(void *buf, MsgHeader * header, Timestamp * receiveTimestamp, Pt
 	*(Integer32 *) (buf + 12) = flip32(header->correctionfield.lsb);
 
 	*(UInteger16 *) (buf + 30) = flip16(header->sequenceId);
-	
+
 	*(UInteger8 *) (buf + 32) = 0x03;
 	/* Table 23 */
 	*(Integer8 *) (buf + 33) = ptpClock->logMinDelayReqInterval;
 	/* Table 24 */
 
 	/* Pdelay_resp message */
-	*(UInteger16 *) (buf + 34) = 
+	*(UInteger16 *) (buf + 34) =
 		flip16(receiveTimestamp->secondsField.msb);
 	*(UInteger32 *) (buf + 36) = flip32(receiveTimestamp->secondsField.lsb);
 	*(UInteger32 *) (buf + 40) = flip32(receiveTimestamp->nanosecondsField);
-	memcpy((buf + 44), header->sourcePortIdentity.clockIdentity, 
+	memcpy((buf + 44), header->sourcePortIdentity.clockIdentity,
 	       CLOCK_IDENTITY_LENGTH);
-	*(UInteger16 *) (buf + 52) = 
+	*(UInteger16 *) (buf + 52) =
 		flip16(header->sourcePortIdentity.portNumber);
 }
 
@@ -307,7 +307,7 @@ msgPackDelayResp(void *buf, MsgHeader * header, Timestamp * receiveTimestamp, Pt
 
 
 /*pack PdelayResp message into OUT buffer of ptpClock*/
-void 
+void
 msgPackPDelayResp(void *buf, MsgHeader * header, Timestamp * requestReceiptTimestamp, PtpClock * ptpClock)
 {
 	/* changes in header */
@@ -338,14 +338,14 @@ msgPackPDelayResp(void *buf, MsgHeader * header, Timestamp * requestReceiptTimes
 
 
 /*Unpack delayReq message from IN buffer of ptpClock to msgtmp.req*/
-void 
+void
 msgUnpackDelayReq(void *buf, MsgDelayReq * delayreq)
 {
-	delayreq->originTimestamp.secondsField.msb = 
+	delayreq->originTimestamp.secondsField.msb =
 		flip16(*(UInteger16 *) (buf + 34));
-	delayreq->originTimestamp.secondsField.lsb = 
+	delayreq->originTimestamp.secondsField.lsb =
 		flip32(*(UInteger32 *) (buf + 36));
-	delayreq->originTimestamp.nanosecondsField = 
+	delayreq->originTimestamp.nanosecondsField =
 		flip32(*(UInteger32 *) (buf + 40));
 
 #ifdef PTPD_DBG
@@ -356,14 +356,14 @@ msgUnpackDelayReq(void *buf, MsgDelayReq * delayreq)
 
 
 /*Unpack PdelayReq message from IN buffer of ptpClock to msgtmp.req*/
-void 
+void
 msgUnpackPDelayReq(void *buf, MsgPDelayReq * pdelayreq)
 {
-	pdelayreq->originTimestamp.secondsField.msb = 
+	pdelayreq->originTimestamp.secondsField.msb =
 		flip16(*(UInteger16 *) (buf + 34));
-	pdelayreq->originTimestamp.secondsField.lsb = 
+	pdelayreq->originTimestamp.secondsField.lsb =
 		flip32(*(UInteger32 *) (buf + 36));
-	pdelayreq->originTimestamp.nanosecondsField = 
+	pdelayreq->originTimestamp.nanosecondsField =
 		flip32(*(UInteger32 *) (buf + 40));
 
 #ifdef PTPD_DBG
@@ -374,18 +374,18 @@ msgUnpackPDelayReq(void *buf, MsgPDelayReq * pdelayreq)
 
 
 /*Unpack delayResp message from IN buffer of ptpClock to msgtmp.presp*/
-void 
+void
 msgUnpackDelayResp(void *buf, MsgDelayResp * resp)
 {
-	resp->receiveTimestamp.secondsField.msb = 
+	resp->receiveTimestamp.secondsField.msb =
 		flip16(*(UInteger16 *) (buf + 34));
-	resp->receiveTimestamp.secondsField.lsb = 
+	resp->receiveTimestamp.secondsField.lsb =
 		flip32(*(UInteger32 *) (buf + 36));
-	resp->receiveTimestamp.nanosecondsField = 
+	resp->receiveTimestamp.nanosecondsField =
 		flip32(*(UInteger32 *) (buf + 40));
-	memcpy(resp->requestingPortIdentity.clockIdentity, 
+	memcpy(resp->requestingPortIdentity.clockIdentity,
 	       (buf + 44), CLOCK_IDENTITY_LENGTH);
-	resp->requestingPortIdentity.portNumber = 
+	resp->requestingPortIdentity.portNumber =
 		flip16(*(UInteger16 *) (buf + 52));
 
 #ifdef PTPD_DBG
@@ -395,18 +395,18 @@ msgUnpackDelayResp(void *buf, MsgDelayResp * resp)
 
 
 /*Unpack PdelayResp message from IN buffer of ptpClock to msgtmp.presp*/
-void 
+void
 msgUnpackPDelayResp(void *buf, MsgPDelayResp * presp)
 {
-	presp->requestReceiptTimestamp.secondsField.msb = 
+	presp->requestReceiptTimestamp.secondsField.msb =
 		flip16(*(UInteger16 *) (buf + 34));
-	presp->requestReceiptTimestamp.secondsField.lsb = 
+	presp->requestReceiptTimestamp.secondsField.lsb =
 		flip32(*(UInteger32 *) (buf + 36));
-	presp->requestReceiptTimestamp.nanosecondsField = 
+	presp->requestReceiptTimestamp.nanosecondsField =
 		flip32(*(UInteger32 *) (buf + 40));
-	memcpy(presp->requestingPortIdentity.clockIdentity, 
+	memcpy(presp->requestingPortIdentity.clockIdentity,
 	       (buf + 44), CLOCK_IDENTITY_LENGTH);
-	presp->requestingPortIdentity.portNumber = 
+	presp->requestingPortIdentity.portNumber =
 		flip16(*(UInteger16 *) (buf + 52));
 
 #ifdef PTPD_DBG
@@ -415,7 +415,7 @@ msgUnpackPDelayResp(void *buf, MsgPDelayResp * presp)
 }
 
 /*pack PdelayRespfollowup message into OUT buffer of ptpClock*/
-void 
+void
 msgPackPDelayRespFollowUp(void *buf, MsgHeader * header, Timestamp * responseOriginTimestamp, PtpClock * ptpClock)
 {
 	/* changes in header */
@@ -435,38 +435,38 @@ msgPackPDelayRespFollowUp(void *buf, MsgHeader * header, Timestamp * responseOri
 	*(Integer32 *) (buf + 12) = flip32(header->correctionfield.lsb);
 
 	/* Pdelay_resp_follow_up message */
-	*(UInteger16 *) (buf + 34) = 
+	*(UInteger16 *) (buf + 34) =
 		flip16(responseOriginTimestamp->secondsField.msb);
-	*(UInteger32 *) (buf + 36) = 
+	*(UInteger32 *) (buf + 36) =
 		flip32(responseOriginTimestamp->secondsField.lsb);
-	*(UInteger32 *) (buf + 40) = 
+	*(UInteger32 *) (buf + 40) =
 		flip32(responseOriginTimestamp->nanosecondsField);
-	memcpy((buf + 44), header->sourcePortIdentity.clockIdentity, 
+	memcpy((buf + 44), header->sourcePortIdentity.clockIdentity,
 	       CLOCK_IDENTITY_LENGTH);
-	*(UInteger16 *) (buf + 52) = 
+	*(UInteger16 *) (buf + 52) =
 		flip16(header->sourcePortIdentity.portNumber);
 }
 
 /*Unpack PdelayResp message from IN buffer of ptpClock to msgtmp.presp*/
-void 
+void
 msgUnpackPDelayRespFollowUp(void *buf, MsgPDelayRespFollowUp * prespfollow)
 {
-	prespfollow->responseOriginTimestamp.secondsField.msb = 
+	prespfollow->responseOriginTimestamp.secondsField.msb =
 		flip16(*(UInteger16 *) (buf + 34));
-	prespfollow->responseOriginTimestamp.secondsField.lsb = 
+	prespfollow->responseOriginTimestamp.secondsField.lsb =
 		flip32(*(UInteger32 *) (buf + 36));
-	prespfollow->responseOriginTimestamp.nanosecondsField = 
+	prespfollow->responseOriginTimestamp.nanosecondsField =
 		flip32(*(UInteger32 *) (buf + 40));
-	memcpy(prespfollow->requestingPortIdentity.clockIdentity, 
+	memcpy(prespfollow->requestingPortIdentity.clockIdentity,
 	       (buf + 44), CLOCK_IDENTITY_LENGTH);
-	prespfollow->requestingPortIdentity.portNumber = 
+	prespfollow->requestingPortIdentity.portNumber =
 		flip16(*(UInteger16 *) (buf + 52));
 }
 
 
-/** 
+/**
  * Dump the most recent packet in the daemon
- * 
+ *
  * @param ptpClock The central clock structure
  */
 void msgDump(PtpClock *ptpClock)
@@ -481,27 +481,27 @@ void msgDump(PtpClock *ptpClock)
 	case SYNC:
 		msgDebugSync(&ptpClock->msgTmp.sync);
 		break;
-    
+
 	case ANNOUNCE:
 		msgDebugAnnounce(&ptpClock->msgTmp.announce);
 		break;
-    
+
 	case FOLLOW_UP:
 		msgDebugFollowUp(&ptpClock->msgTmp.follow);
 		break;
-    
+
 	case DELAY_REQ:
 		msgDebugDelayReq(&ptpClock->msgTmp.req);
 		break;
-    
+
 	case DELAY_RESP:
 		msgDebugDelayResp(&ptpClock->msgTmp.resp);
 		break;
-    
+
 	case MANAGEMENT:
 		msgDebugManagement(&ptpClock->msgTmp.manage);
 		break;
-    
+
 	default:
 		NOTIFY("msgDump:unrecognized message\n");
 		break;
@@ -509,15 +509,15 @@ void msgDump(PtpClock *ptpClock)
 
 #if defined(freebsd)
 	/* Only dump the first time, after that just do a message. */
-	if (dumped != 0) 
+	if (dumped != 0)
 		return;
 
 	dumped++;
-	NOTIFY("msgDump: core file created.\n");    
+	NOTIFY("msgDump: core file created.\n");
 
 	switch(rfork(RFFDG|RFPROC|RFNOWAIT)) {
 	case -1:
-		NOTIFY("could not fork to core dump! errno: %s", 
+		NOTIFY("could not fork to core dump! errno: %s",
 		       strerror(errno));
 		break;
 	case 0:
@@ -529,9 +529,9 @@ void msgDump(PtpClock *ptpClock)
 #endif /* FreeBSD */
 }
 
-/** 
+/**
  * Dump a PTP message header
- * 
+ *
  * @param header a pre-filled msg header structure
  */
 
@@ -541,31 +541,31 @@ void msgDebugHeader(MsgHeader *header)
 	NOTIFY("msgDebugHeader: versionPTP %d\n", header->versionPTP);
 	NOTIFY("msgDebugHeader: messageLength %d\n", header->messageLength);
 	NOTIFY("msgDebugHeader: domainNumber %d\n", header->domainNumber);
-	NOTIFY("msgDebugHeader: flags %02hhx %02hhx\n", 
+	NOTIFY("msgDebugHeader: flags %02hhx %02hhx\n",
 	       header->flagField[0], header->flagField[1]);
 	NOTIFY("msgDebugHeader: correctionfield %d\n", header->correctionfield);
 	NOTIFY("msgDebugHeader: sourcePortIdentity.clockIdentity "
-	       "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx%02hhx:%02hhx\n",
-	       header->sourcePortIdentity.clockIdentity[0], 
-	       header->sourcePortIdentity.clockIdentity[1], 
-	       header->sourcePortIdentity.clockIdentity[2], 
-	       header->sourcePortIdentity.clockIdentity[3], 
-	       header->sourcePortIdentity.clockIdentity[4], 
-	       header->sourcePortIdentity.clockIdentity[5], 
-	       header->sourcePortIdentity.clockIdentity[6], 
+	       "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx\n",
+	       header->sourcePortIdentity.clockIdentity[0],
+	       header->sourcePortIdentity.clockIdentity[1],
+	       header->sourcePortIdentity.clockIdentity[2],
+	       header->sourcePortIdentity.clockIdentity[3],
+	       header->sourcePortIdentity.clockIdentity[4],
+	       header->sourcePortIdentity.clockIdentity[5],
+	       header->sourcePortIdentity.clockIdentity[6],
 	       header->sourcePortIdentity.clockIdentity[7]);
 	NOTIFY("msgDebugHeader: sourcePortIdentity.portNumber %d\n",
 	       header->sourcePortIdentity.portNumber);
 	NOTIFY("msgDebugHeader: sequenceId %d\n", header->sequenceId);
 	NOTIFY("msgDebugHeader: controlField %d\n", header->controlField);
-	NOTIFY("msgDebugHeader: logMessageIntervale %d\n", 
+	NOTIFY("msgDebugHeader: logMessageIntervale %d\n",
 	       header->logMessageInterval);
 
 }
 
-/** 
+/**
  * Dump the contents of a sync packet
- * 
+ *
  * @param sync A pre-filled MsgSync structure
  */
 
@@ -577,9 +577,9 @@ void msgDebugSync(MsgSync *sync)
 	       sync->originTimestamp.nanosecondsField);
 }
 
-/** 
+/**
  * Dump the contents of a announce packet
- * 
+ *
  * @param sync A pre-filled MsgAnnounce structure
  */
 
@@ -589,9 +589,9 @@ void msgDebugAnnounce(MsgAnnounce *announce)
 	       announce->originTimestamp.secondsField);
 	NOTIFY("msgDebugAnnounce: originTimestamp.nanoseconds %d\n",
 	       announce->originTimestamp.nanosecondsField);
-	NOTIFY("msgDebugAnnounce: currentUTCOffset %d\n", 
+	NOTIFY("msgDebugAnnounce: currentUTCOffset %d\n",
 	       announce->currentUtcOffset);
-	NOTIFY("msgDebugAnnounce: grandmasterPriority1 %d\n", 
+	NOTIFY("msgDebugAnnounce: grandmasterPriority1 %d\n",
 	       announce->grandmasterPriority1);
 	NOTIFY("msgDebugAnnounce: grandmasterClockQuality.clockClass %d\n",
 	       announce->grandmasterClockQuality.clockClass);
@@ -600,34 +600,34 @@ void msgDebugAnnounce(MsgAnnounce *announce)
 	NOTIFY("msgDebugAnnounce: "
 	       "grandmasterClockQuality.offsetScaledLogVariance %d\n",
 	       announce->grandmasterClockQuality.offsetScaledLogVariance);
-	NOTIFY("msgDebugAnnounce: grandmasterPriority2 %d\n", 
+	NOTIFY("msgDebugAnnounce: grandmasterPriority2 %d\n",
 	       announce->grandmasterPriority2);
 	NOTIFY("msgDebugAnnounce: grandmasterClockIdentity "
 	       "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx%02hhx:%02hhx\n",
-	       announce->grandmasterIdentity[0], 
-	       announce->grandmasterIdentity[1], 
-	       announce->grandmasterIdentity[2], 
-	       announce->grandmasterIdentity[3], 
-	       announce->grandmasterIdentity[4], 
-	       announce->grandmasterIdentity[5], 
-	       announce->grandmasterIdentity[6], 
+	       announce->grandmasterIdentity[0],
+	       announce->grandmasterIdentity[1],
+	       announce->grandmasterIdentity[2],
+	       announce->grandmasterIdentity[3],
+	       announce->grandmasterIdentity[4],
+	       announce->grandmasterIdentity[5],
+	       announce->grandmasterIdentity[6],
 	       announce->grandmasterIdentity[7]);
-	NOTIFY("msgDebugAnnounce: stepsRemoved %d\n", 
+	NOTIFY("msgDebugAnnounce: stepsRemoved %d\n",
 	       announce->stepsRemoved);
-	NOTIFY("msgDebugAnnounce: timeSource %d\n", 
+	NOTIFY("msgDebugAnnounce: timeSource %d\n",
 	       announce->timeSource);
 }
 
-/** 
+/**
  * NOT IMPLEMENTED
- * 
- * @param req 
+ *
+ * @param req
  */
 void msgDebugDelayReq(MsgDelayReq *req) {}
 
-/** 
+/**
  * Dump the contents of a followup packet
- * 
+ *
  * @param follow A pre-fille MsgFollowUp structure
  */
 void msgDebugFollowUp(MsgFollowUp *follow)
@@ -638,9 +638,9 @@ void msgDebugFollowUp(MsgFollowUp *follow)
 	       follow->preciseOriginTimestamp.nanosecondsField);
 }
 
-/** 
+/**
  * Dump the contents of a delay response packet
- * 
+ *
  * @param resp a pre-filled MsgDelayResp structure
  */
 void msgDebugDelayResp(MsgDelayResp *resp)
@@ -651,21 +651,21 @@ void msgDebugDelayResp(MsgDelayResp *resp)
 	       resp->receiveTimestamp.nanosecondsField);
 	NOTIFY("msgDebugDelayResp: requestingPortIdentity.clockIdentity "
 	       "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx%02hhx:%02hhx\n",
-	       resp->requestingPortIdentity.clockIdentity[0], 
-	       resp->requestingPortIdentity.clockIdentity[1], 
-	       resp->requestingPortIdentity.clockIdentity[2], 
-	       resp->requestingPortIdentity.clockIdentity[3], 
-	       resp->requestingPortIdentity.clockIdentity[4], 
-	       resp->requestingPortIdentity.clockIdentity[5], 
-	       resp->requestingPortIdentity.clockIdentity[6], 
+	       resp->requestingPortIdentity.clockIdentity[0],
+	       resp->requestingPortIdentity.clockIdentity[1],
+	       resp->requestingPortIdentity.clockIdentity[2],
+	       resp->requestingPortIdentity.clockIdentity[3],
+	       resp->requestingPortIdentity.clockIdentity[4],
+	       resp->requestingPortIdentity.clockIdentity[5],
+	       resp->requestingPortIdentity.clockIdentity[6],
 	       resp->requestingPortIdentity.clockIdentity[7]);
 	NOTIFY("msgDebugDelayResp: requestingPortIdentity.portNumber %d\n",
 	       resp->requestingPortIdentity.portNumber);
 }
 
-/** 
+/**
  * Dump the contents of management packet
- * 
+ *
  * @param manage a pre-filled MsgManagement structure
  */
 
@@ -673,13 +673,13 @@ void msgDebugManagement(MsgManagement *manage)
 {
 	NOTIFY("msgDebugDelayManage: targetPortIdentity.clockIdentity "
 	       "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx%02hhx:%02hhx\n",
-	       manage->targetPortIdentity.clockIdentity[0], 
-	       manage->targetPortIdentity.clockIdentity[1], 
-	       manage->targetPortIdentity.clockIdentity[2], 
-	       manage->targetPortIdentity.clockIdentity[3], 
-	       manage->targetPortIdentity.clockIdentity[4], 
-	       manage->targetPortIdentity.clockIdentity[5], 
-	       manage->targetPortIdentity.clockIdentity[6], 
+	       manage->targetPortIdentity.clockIdentity[0],
+	       manage->targetPortIdentity.clockIdentity[1],
+	       manage->targetPortIdentity.clockIdentity[2],
+	       manage->targetPortIdentity.clockIdentity[3],
+	       manage->targetPortIdentity.clockIdentity[4],
+	       manage->targetPortIdentity.clockIdentity[5],
+	       manage->targetPortIdentity.clockIdentity[6],
 	       manage->targetPortIdentity.clockIdentity[7]);
 	NOTIFY("msgDebugDelayManage: targetPortIdentity.portNumber %d\n",
 	       manage->targetPortIdentity.portNumber);
