@@ -1,16 +1,35 @@
 /**
  * @file   display.c
  * @date   Thu Aug 12 09:06:21 2010
- * 
+ *
  * @brief  General routines for displaying internal data.
- * 
- * 
+ *
+ *
  */
 
 #include "ptpd.h"
 
+/**
+ * \brief PTP Message name strings for debug display
+ */
+ char ptpMessageNameString[] =
+ {
+	 "Sync",
+	 "Delay_Req",
+	 "PDelay_Req",
+	 "PDelay_Resp",
+	 "?","?","?","?",
+	 "Follow_Up",
+	 "Delay_Resp",
+	 "PDelay_Resp_Follow_Up",
+	 "Announce",
+	 "Signaling",
+	 "Management",
+	 "?","?"
+ };
+
 /**\brief Display an Integer64 type*/
-void 
+void
 integer64_display(Integer64 * bigint)
 {
 	DBGV("Integer 64 : \n");
@@ -19,7 +38,7 @@ integer64_display(Integer64 * bigint)
 }
 
 /**\brief Display an UInteger48 type*/
-void 
+void
 uInteger48_display(UInteger48 * bigint)
 {
 	DBGV("Integer 48 : \n");
@@ -28,7 +47,7 @@ uInteger48_display(UInteger48 * bigint)
 }
 
 /** \brief Display a TimeInternal Structure*/
-void 
+void
 timeInternal_display(TimeInternal * timeInternal)
 {
 	DBGV("seconds : %d \n", timeInternal->seconds);
@@ -36,7 +55,7 @@ timeInternal_display(TimeInternal * timeInternal)
 }
 
 /** \brief Display a Timestamp Structure*/
-void 
+void
 timestamp_display(Timestamp * timestamp)
 {
 	uInteger48_display(&timestamp->secondsField);
@@ -44,7 +63,7 @@ timestamp_display(Timestamp * timestamp)
 }
 
 /**\brief Display a Clockidentity Structure*/
-void 
+void
 clockIdentity_display(ClockIdentity clockIdentity)
 {
 
@@ -58,7 +77,7 @@ clockIdentity_display(ClockIdentity clockIdentity)
 }
 
 /**\brief Display MAC address*/
-void 
+void
 clockUUID_display(Octet * sourceUuid)
 {
 
@@ -72,7 +91,7 @@ clockUUID_display(Octet * sourceUuid)
 
 
 /**\brief Display Network info*/
-void 
+void
 netPath_display(NetPath * net)
 {
 	struct in_addr addr;
@@ -88,7 +107,7 @@ netPath_display(NetPath * net)
 }
 
 /**\brief Display a IntervalTimer Structure*/
-void 
+void
 intervalTimer_display(IntervalTimer * ptimer)
 {
 	DBGV("interval : %d \n", ptimer->interval);
@@ -100,7 +119,7 @@ intervalTimer_display(IntervalTimer * ptimer)
 
 
 /**\brief Display a TimeInterval Structure*/
-void 
+void
 timeInterval_display(TimeInterval * timeInterval)
 {
 	integer64_display(&timeInterval->scaledNanoseconds);
@@ -108,7 +127,7 @@ timeInterval_display(TimeInterval * timeInterval)
 
 
 /**\brief Display a Portidentity Structure*/
-void 
+void
 portIdentity_display(PortIdentity * portIdentity)
 {
 	clockIdentity_display((char *)portIdentity->clockIdentity);
@@ -117,7 +136,7 @@ portIdentity_display(PortIdentity * portIdentity)
 }
 
 /**\brief Display a Clockquality Structure*/
-void 
+void
 clockQuality_display(ClockQuality * clockQuality)
 {
 	DBGV("clockClass : %d \n", clockQuality->clockClass);
@@ -127,7 +146,7 @@ clockQuality_display(ClockQuality * clockQuality)
 
 
 /**\brief Display the Network Interface Name*/
-void 
+void
 iFaceName_display(Octet * iFaceName)
 {
 
@@ -143,7 +162,7 @@ iFaceName_display(Octet * iFaceName)
 }
 
 /**\brief Display an Unicast Adress*/
-void 
+void
 unicast_display(Octet * unicast)
 {
 
@@ -160,7 +179,7 @@ unicast_display(Octet * unicast)
 
 
 /**\brief Display Sync message*/
-void 
+void
 msgSync_display(MsgSync * sync)
 {
 	DBGV("Message Sync : \n");
@@ -169,13 +188,14 @@ msgSync_display(MsgSync * sync)
 }
 
 /**\brief Display Header message*/
-void 
+void
 msgHeader_display(MsgHeader * header)
 {
 	DBGV("Message header : \n");
 	DBGV("\n");
 	DBGV("transportSpecific : %d\n", header->transportSpecific);
-	DBG("messageType : %d\n", header->messageType);
+	DBG("messageType : %d ", header->messageType);
+	DBG("%s \n", ptpMessageNameString[header->messageType]);
 	DBGV("versionPTP : %d\n", header->versionPTP);
 	DBGV("messageLength : %d\n", header->messageLength);
 	DBGV("domainNumber : %d\n", header->domainNumber);
@@ -189,7 +209,7 @@ msgHeader_display(MsgHeader * header)
 }
 
 /**\brief Display Announce message*/
-void 
+void
 msgAnnounce_display(MsgAnnounce * announce)
 {
 	DBGV("Announce Message : \n");
@@ -210,21 +230,21 @@ msgAnnounce_display(MsgAnnounce * announce)
 }
 
 /**\brief Display Follow_UP message*/
-void 
+void
 msgFollowUp_display(MsgFollowUp * follow)
 {
 	timestamp_display(&follow->preciseOriginTimestamp);
 }
 
 /**\brief Display DelayReq message*/
-void 
+void
 msgDelayReq_display(MsgDelayReq * req)
 {
 	timestamp_display(&req->originTimestamp);
 }
 
 /**\brief Display DelayResp message*/
-void 
+void
 msgDelayResp_display(MsgDelayResp * resp)
 {
 	timestamp_display(&resp->receiveTimestamp);
@@ -232,14 +252,14 @@ msgDelayResp_display(MsgDelayResp * resp)
 }
 
 /**\brief Display Pdelay_Req message*/
-void 
+void
 msgPDelayReq_display(MsgPDelayReq * preq)
 {
 	timestamp_display(&preq->originTimestamp);
 }
 
 /**\brief Display Pdelay_Resp message*/
-void 
+void
 msgPDelayResp_display(MsgPDelayResp * presp)
 {
 
@@ -248,7 +268,7 @@ msgPDelayResp_display(MsgPDelayResp * presp)
 }
 
 /**\brief Display Pdelay_Resp Follow Up message*/
-void 
+void
 msgPDelayRespFollowUp_display(MsgPDelayRespFollowUp * prespfollow)
 {
 
@@ -257,7 +277,7 @@ msgPDelayRespFollowUp_display(MsgPDelayRespFollowUp * prespfollow)
 }
 
 /**\brief Display runTimeOptions structure*/
-void 
+void
 displayRunTimeOpts(RunTimeOpts * rtOpts)
 {
 
@@ -291,7 +311,7 @@ displayRunTimeOpts(RunTimeOpts * rtOpts)
 
 
 /**\brief Display Default data set of a PtpClock*/
-void 
+void
 displayDefault(PtpClock * ptpClock)
 {
 
@@ -310,7 +330,7 @@ displayDefault(PtpClock * ptpClock)
 
 
 /**\brief Display Current data set of a PtpClock*/
-void 
+void
 displayCurrent(PtpClock * ptpClock)
 {
 
@@ -328,7 +348,7 @@ displayCurrent(PtpClock * ptpClock)
 
 
 /**\brief Display Parent data set of a PtpClock*/
-void 
+void
 displayParent(PtpClock * ptpClock)
 {
 
@@ -347,7 +367,7 @@ displayParent(PtpClock * ptpClock)
 }
 
 /**\brief Display Global data set of a PtpClock*/
-void 
+void
 displayGlobal(PtpClock * ptpClock)
 {
 
@@ -366,7 +386,7 @@ displayGlobal(PtpClock * ptpClock)
 }
 
 /**\brief Display Port data set of a PtpClock*/
-void 
+void
 displayPort(PtpClock * ptpClock)
 {
 
@@ -388,7 +408,7 @@ displayPort(PtpClock * ptpClock)
 }
 
 /**\brief Display ForeignMaster data set of a PtpClock*/
-void 
+void
 displayForeignMaster(PtpClock * ptpClock)
 {
 
@@ -423,7 +443,7 @@ displayForeignMaster(PtpClock * ptpClock)
 
 /**\brief Display other data set of a PtpClock*/
 
-void 
+void
 displayOthers(PtpClock * ptpClock)
 {
 
@@ -493,7 +513,7 @@ displayOthers(PtpClock * ptpClock)
 
 
 /**\brief Display Buffer in & out of a PtpClock*/
-void 
+void
 displayBuffer(PtpClock * ptpClock)
 {
 
@@ -545,7 +565,7 @@ displayBuffer(PtpClock * ptpClock)
 
 
 /**\brief Display All data set of a PtpClock*/
-void 
+void
 displayPtpClock(PtpClock * ptpClock)
 {
 

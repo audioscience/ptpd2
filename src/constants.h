@@ -20,7 +20,7 @@
 #define DEFAULT_OUTBOUND_LATENCY     	0       /* in nsec */
 #define DEFAULT_NO_RESET_CLOCK       	FALSE
 #define DEFAULT_DOMAIN_NUMBER		0
-#define DEFAULT_DELAY_MECHANISM		P2P 
+#define DEFAULT_DELAY_MECHANISM		P2P
 #define DEFAULT_AP                   	10
 #define DEFAULT_AI                   	1000
 #define DEFAULT_DELAY_S              	6
@@ -144,6 +144,7 @@ enum {
 	SIGNALING,
 	MANAGEMENT,
 };
+
 
 enum {
   PTP_ETHER,PTP_DEFAULT
